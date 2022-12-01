@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+        <h1>Add Create</h1>
+        <form method="post" action="">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Next">
+            <input type="submit" value="Cancel" onclick="window.location.href='{% url 'add:add_list' %}';return false;">
+        </form>
+{% endblock %}

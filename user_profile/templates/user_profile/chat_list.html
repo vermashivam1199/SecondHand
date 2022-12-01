@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+    {% for row in ordered_row %}
+        {% if row.sender == request.user %}
+            <a href="{url 'user_profile:chat' row.receiver.id}">{{row.receiver.username}}</a>
+        {% elif row.receiver == request.user %}
+        <a href="{url 'user_profile:chat' row.sender.id}">{{row.sender.username}}</a>
+        {% endif %}
+    {% endfor %}      
+{% endblock %}

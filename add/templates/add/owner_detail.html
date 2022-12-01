@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+        <h1>{{ add.name }}</h1>
+        <a href="{% url 'add:new_photo' add.id %}">Add photo</a>
+        <div>
+            <a href="{% url 'add:add_update' add.id %}">Edit</a>
+            <a href="{% url 'add:add_delete' add.id %}">Delete</a>
+        </div>
+        {% for pic in picture %}
+            <h1>{{ pic.name }}</h1>
+            {{pic.id}}
+            <a href="{% url 'add:picture_update' pic.id add.id %}">Edit</a>
+            <a href="{% url 'add:photo_delete' pic.id %}">Delete</a>
+            {% if pic.content_type %}
+                <img style="max-width:50%; display:block; margin-left: auto; margin-right: auto;;" src="{% url 'add:steam_pic' pic.id %}" alt="PIC IS NOT WORKING">
+            {% endif %}
+        {% endfor %}
+        <h1>Features</h1>
+        <form method="post" action="{% url 'add:feature_create' add.id %}">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Insert">
+        </form>
+        
+        <ul id="feature_list">
+            {% for feature in features %}
+                <li>
+                    <span id="f_name">{{feature.feature_name}}</span>
+                    <span id="f">{{feature.feature}}</span><br>
+                </li>
+            {% endfor %}
+            </ul>
+        <a href="{% url 'add:owner_list' %}">List</a>
+        <a href = "{% url 'home:all' %}">home</a><br>
+        
+{% endblock %}

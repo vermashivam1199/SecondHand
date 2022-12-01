@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>SecondHand</h1>
+        <a href = "{% url 'add:add_list' %}">list</a><br>
+        {% if request.user.is_authenticated %}
+            <a href = "{% url 'logout' %}?next={{request.path}}">logout</a><br>
+        {% else %}
+            <a href = "{% url 'login' %}?next={{request.path}}">login</a><br>
+        {% endif %}
+        <a href = "{% url 'home:register' %}?next={{request.path}}">Register</a><br>
+        <a href = "{% url 'user_profile:profile_page' %}">owner</a><br>
+
+        {% for row in count_list %}
+            <h1>{{ row.a_name }}</h1>
+        {% endfor %}
+{% endblock %}

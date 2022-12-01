@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+        <h1>{{ add.name }}</h1>
+        <p>{{ add.description }}</p>
+        {% for pic in picture %}
+            {% if pic.content_type %}
+                <img style="max-width:50%; display:block; margin-left: auto; margin-right: auto;;" src="{% url 'add:steam_pic' pic.id %}" alt="PIC IS NOT WORKING">
+            {% endif %}
+        {% endfor %}
+        <h1>Features</h1>
+        <ul id="feature_list">
+            {% for feature in features %}
+                <li>
+                    <span id="f_name">{{feature.feature_name}}</span>
+                    <span id="f">{{feature.feature}}</span><br>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if not user == add.owner %}
+            <form action="{% url 'add:offered_price' add.id %}" method="POST"  onsubmit="offered_price_js(event, this)">
+                {% csrf_token %}
+                {{ offered_price_fm|crispy }}
+                <input type="submit" value="Offer">
+            </form>
+            <form action="{% url 'add:offered_price_delete' add.id %}" method="POST" onsubmit="offered_price_change_js(event, this)">
+                {% csrf_token %}
+                <input type="submit" value="Delete offer">
+            </form>
+        {% endif %}
+        <h1>Add Comment</h1>
+        <form action="{% url 'add:comment' add.id %}" method="POST" onsubmit="comment_change_js(event, this)" id = "newform">
+            {% csrf_token %}
+            {{ comment_fm|crispy }}
+            <input type="submit" value="Save comment">
+        </form>
+        <ul id="comment_list" style="list-style-type: none;">
+            {% for comment in comments %}
+                <li>
+                    <span style="color: red;">{{ comment.owner }}</span> {{ comment.text }} <span style="color: blue;"> {{ comment.updated_at|timesince}} </span>
+                    {% if comment.owner == request.user %}
+                    <a href="{% url 'add:comment_delete' comment.id %}">Delete</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'add:add_list' %}">List</a>
+        <a href="{% url 'user_profile:owner_about' add.owner.id %}">{{ add.owner }}</a>
+        <span hidden id="uname">{{ request.user.username }}</span>
+
+        <script>
+            function comment_change_js(e, form) {
+                    e.preventDefault();
+            
+                    const output = document.getElementById('output');
+                    const formData = new FormData(form);
+                
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(html => {
+                        output.innerHTML = html.Response
+                    });
+                    var tex = document.getElementById('id_text').value;
+                    var uname = document.getElementById('uname').innerHTML;
+                    document.getElementById('newform').reset();
+                    console.log(uname)
+                    var ul = document.getElementById("comment_list");
+                    var li = document.createElement("li");
+                    var span_uname = document.createElement("span");
+                    var span_time = document.createElement("span");
+                    span_uname.appendChild(document.createTextNode(uname));
+                    span_time.appendChild(document.createTextNode(' 0 minutes'));
+                    span_uname.setAttribute('style', 'color: red;');
+                    span_time.setAttribute('style', 'color: blue;');
+                    li.appendChild(span_uname);
+                    li.appendChild(document.createTextNode(' '+tex));
+                    li.appendChild(span_time);
+                    ul.appendChild(li);
+                  }
+
+                  function offered_price_js(e, form) {
+                    e.preventDefault();
+            
+                    const output = document.getElementById('output');
+                    const formData = new FormData(form);
+                
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(html => {
+                        output.innerHTML = html.Response
+                    });
+                  }
+
+
+                  function offered_price_change_js(e, form) {
+                    e.preventDefault();
+            
+                    const output = document.getElementById('output');
+                    const formData = new FormData(form);
+                
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(html => {
+                        output.innerHTML = html.Response
+                    });
+                    document.getElementById('id_price_offered').value = '';
+                  }
+            </script>
+{% endblock %}

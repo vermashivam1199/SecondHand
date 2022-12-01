@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+        <a href = "{% url 'home:all' %}">home</a><br>
+        <a href = "{% url 'add:add_create' %}">create</a><br>
+        <h1>Owner List</h1>
+        {% if adds %}
+            {% for add in adds %}
+                <div>
+                <a href = "{% url 'add:owner_detail' add.pk %}">{{ add.name }}</a><br>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>there are no adds</p>
+        {% endif %}
+{% endblock %}

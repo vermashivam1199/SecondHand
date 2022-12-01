@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+        <a href = "{% url 'home:all' %}">home</a><br>
+        <h1>List</h1>
+        {% if adds %}
+            {% for add in adds %}
+                <li>
+                    <a href = "{% url 'add:add_detail' add.pk %}">{{ add.name }}</a>
+                    {% if user.is_authenticated %}
+                    <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
+                    <a href="#" onclick=
+                        "favPost('{% url 'add:delete_saved' add.id %}', {{ add.id }} );return false;"
+                        {% if add.id not in saved %} style="display: none;" {% endif %}
+                        id="favorite_star_{{add.id}}">
+                        <span class="fa-stack" style="vertical-align: middle;">
+                        <i class="fa fa-star fa-stack-1x" style="color: orange;"></i>
+                        <i class="fa fa-star-o fa-stack-1x"></i>
+                        </span>
+                    </a>
+                    <!-- the second href -->
+                    <a href="#" onclick=
+                         "favPost('{% url 'add:create_saved' add.id %}', {{ add.id }} );return false;"
+                        {% if add.id in saved %} style="display: none;" {% endif %}
+                        id="unfavorite_star_{{add.id}}">
+                        <span class="fa-stack" style="vertical-align: middle;">
+                        <i class="fa fa-star fa-stack-1x" style="display: none; color: orange;"></i>
+                        <i class="fa fa-star-o fa-stack-1x"></i>
+                        </span>
+                    </a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        {% else %}
+            <p>there are no adds</p>
+        {% endif %}
+        <script>
+            function favPost(url, thing_id) {
+                console.log('Requesting JSON');
+                $.post(url, {},  function(rowz){
+                    console.log(url, 'finished');
+                    $("#unfavorite_star_"+thing_id).toggle();
+                    $("#favorite_star_"+thing_id).toggle();
+                }).fail(function(xhr) {
+                    alert('Url failed with '+xhr.status+' '+url);
+                });
+            }
+            </script>
+{% endblock %}

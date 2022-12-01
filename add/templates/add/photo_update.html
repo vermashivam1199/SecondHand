@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+{% load crispy_forms_tags %}
+        <h1>Photo Create</h1>
+        <form action="" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="update image">
+            <input type="submit" value="Cancel" onclick="window.location.href='{% url 'add:owner_detail' row %}';return false;">
+        </form>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>Delete</h1>
+        <form action="" method="POST">
+            {% csrf_token %}
+            <input type="submit" value="Delete">
+            <input type="submit" value="Cancel" onclick="window.location.href='{% url 'user_profile:profile_page' %}';return false;">
+        </form>
+{% endblock %}
