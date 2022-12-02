@@ -27,7 +27,12 @@
             {% for feature in features %}
                 <li>
                     <span id="f_name">{{feature.feature_name}}</span>
-                    <span id="f">{{feature.feature}}</span><br>
+                    <span id="f">{{feature.feature}}</span>
+                    <a href="{% url 'add:feature_update' feature.id %}">Update</a>
+                    <form action="{% url 'add:feature_delete' feature.id %}" method="POST">
+                        {% csrf_token %}
+                        <input type="submit" value="Delete">
+                    </form>
                 </li>
             {% endfor %}
             </ul>

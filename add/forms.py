@@ -125,7 +125,7 @@ class FeatureForm(forms.ModelForm):
         if kwargs.get('add_id'):
             self.add_id = kwargs.pop('add_id')
         else:
-            self.add_idt = 0
+            self.add_id = None
         super(FeatureForm, self).__init__(*args, **kwargs)
 
     def clean(self):

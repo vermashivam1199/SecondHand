@@ -2,7 +2,8 @@ from django.views.generic import TemplateView
 from django.urls import path
 from.views import (
     AddListView, AddCreateView, PhotoCreateView, AddDetailView, AddUpdateView, stream_file, OwnerListView, OwnerDetailView, PhotoUpdateView, PhotoAddView,
-    AddDeleteView, PhotoDeleteView, CommentView, CommentDeleteView, CreateSavedView, DeleteSavedView, OfferedPriceView, OfferedPriceDelete, FeatureView
+    AddDeleteView, PhotoDeleteView, CommentView, CommentDeleteView, CreateSavedView, DeleteSavedView, OfferedPriceView, OfferedPriceDelete, FeatureView,
+    FeatureUpdateView, FeatureDeleteView
 )
 
 
@@ -27,4 +28,6 @@ urlpatterns = [
     path('offered_price/<int:pk>', OfferedPriceView.as_view(), name='offered_price'),
     path('offered_price_delete/<int:pk>', OfferedPriceDelete.as_view(), name='offered_price_delete'),
     path('feature_create/<int:pk>', FeatureView.as_view(), name='feature_create'),
+    path('feature_update/<int:pk>', FeatureUpdateView.as_view(), name='feature_update'),
+    path('feature_delete/<int:pk>', FeatureDeleteView.as_view(), name='feature_delete'),
 ]

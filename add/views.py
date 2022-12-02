@@ -20,6 +20,10 @@ from django.db.utils import IntegrityError
 
 # Create your views here.
 
+
+
+# Add
+# <----------------------------------------------------------------------------------------------------->
 class AddListView(View):
 
     def get(self,request):
@@ -60,6 +64,86 @@ class AddCreateView(LoginRequiredMixin, View):
         contx = {'form':fm}
         return render(request, 'add/add_create.html', contx)
 
+
+class AddDetailView(View):
+
+    def get(self, request, id):
+        add = get_object_or_404(Add, pk=id)
+        comments = Comment.objects.filter(add=add.id)
+        comment_fm = CommentForm()
+        offered_price_fm = OfferedPriceForm()
+        offered_price = OfferedPrice.objects.filter(add=add.id, owner=request.user.id)
+        if offered_price:
+            offered_price_fm = OfferedPriceForm(instance=offered_price[0])
+        pic = add.add_photo.all()
+        features = Feature.objects.filter(add=add.id)
+        contx = {
+            'add':add, 'picture':pic, 'comments':comments, 'comment_fm':comment_fm, 'offered_price_fm':offered_price_fm, 'features':features
+        }
+        return render(request, 'add/detail.html', contx)
+
+
+class AddUpdateView(LoginRequiredMixin, View):
+
+    def get(self, request, id):
+        row = get_object_or_404(Add, pk=id, owner=self.request.user)
+        fm = AddForm(instance=row)
+        contx = {'form':fm, 'row':row.id}
+        return render(request, 'add/add_update.html', contx)
+    
+    def post(self, request, id):
+        row = get_object_or_404(Add, pk=id, owner=self.request.user)
+        fm = AddForm(request.POST, instance=row)
+        if fm.is_valid():
+            fm.save()
+            return redirect(reverse('add:owner_detail', args=[row.id]))
+        contx = {'form':fm, 'row':row.id}
+        return render(request, 'add/add_update.html', contx)
+
+def stream_file(request, id):
+        pic = get_object_or_404(Photo, pk=id)
+        response = HttpResponse()
+        if pic.content_type:
+            response['Content-Type'] = pic.content_type
+            response['Content-Length'] = len(pic.picture)
+            response.write(pic.picture)
+        return response
+
+class AddDeleteView(OwnerDeleteView):
+    model = Add
+    success_url = reverse_lazy('add:owner_list')
+    template_name = 'add/delete.html'
+# <----------------------------------------------------------------------------------------------------->
+
+
+
+
+# Owner
+# <----------------------------------------------------------------------------------------------------->
+class OwnerListView(LoginRequiredMixin, View):
+
+    def get(self,request):
+        adds = Add.objects.filter(owner=self.request.user)
+        context = {'adds':adds}
+        return render(request,'add/owner_list.html',context)
+
+
+class OwnerDetailView(LoginRequiredMixin, View):
+
+    def get(self, request, id):
+        add = get_object_or_404(Add, pk=id, owner=self.request.user)
+        pic = add.add_photo.all()
+        fm = FeatureForm()
+        features = Feature.objects.filter(add=add.id)
+        contx = {'add':add, 'picture':pic, 'form':fm, 'features':features}
+        return render(request, 'add/owner_detail.html', contx)
+# <----------------------------------------------------------------------------------------------------->
+
+
+
+
+# Photo
+# <----------------------------------------------------------------------------------------------------->
 class PhotoCreateView(LoginRequiredMixin, View):
     sucess_url = reverse_lazy('user_profile:profile_page')
     home_url = reverse_lazy('home:all')
@@ -91,67 +175,6 @@ class PhotoCreateView(LoginRequiredMixin, View):
                 contx = {'form':fm}
                 return render(request, 'add/add_photo.html', contx)
         return res
-
-
-class AddDetailView(View):
-
-    def get(self, request, id):
-        add = get_object_or_404(Add, pk=id)
-        comments = Comment.objects.filter(add=add.id)
-        comment_fm = CommentForm()
-        offered_price_fm = OfferedPriceForm()
-        offered_price = OfferedPrice.objects.filter(add=add.id, owner=request.user.id)
-        if offered_price:
-            offered_price_fm = OfferedPriceForm(instance=offered_price[0])
-        pic = add.add_photo.all()
-        features = Feature.objects.filter(add=add.id)
-        contx = {'add':add, 'picture':pic, 'comments':comments, 'comment_fm':comment_fm, 'offered_price_fm':offered_price_fm, 'features':features}
-        return render(request, 'add/detail.html', contx)
-
-
-class AddUpdateView(LoginRequiredMixin, View):
-
-    def get(self, request, id):
-        row = get_object_or_404(Add, pk=id, owner=self.request.user)
-        fm = AddForm(instance=row)
-        contx = {'form':fm, 'row':row.id}
-        return render(request, 'add/add_update.html', contx)
-    
-    def post(self, request, id):
-        row = get_object_or_404(Add, pk=id, owner=self.request.user)
-        fm = AddForm(request.POST, instance=row)
-        if fm.is_valid():
-            fm.save()
-            return redirect(reverse('add:owner_detail', args=[row.id]))
-        contx = {'form':fm, 'row':row.id}
-        return render(request, 'add/add_update.html', contx)
-
-def stream_file(request, id):
-        pic = get_object_or_404(Photo, pk=id)
-        response = HttpResponse()
-        if pic.content_type:
-            response['Content-Type'] = pic.content_type
-            response['Content-Length'] = len(pic.picture)
-            response.write(pic.picture)
-        return response
-
-class OwnerListView(LoginRequiredMixin, View):
-
-    def get(self,request):
-        adds = Add.objects.filter(owner=self.request.user)
-        context = {'adds':adds}
-        return render(request,'add/owner_list.html',context)
-
-
-class OwnerDetailView(LoginRequiredMixin, View):
-
-    def get(self, request, id):
-        add = get_object_or_404(Add, pk=id, owner=self.request.user)
-        pic = add.add_photo.all()
-        fm = FeatureForm()
-        features = Feature.objects.filter(add=add.id)
-        contx = {'add':add, 'picture':pic, 'form':fm, 'features':features}
-        return render(request, 'add/owner_detail.html', contx)
 
 
 class PhotoUpdateView(LoginRequiredMixin, View):
@@ -204,11 +227,6 @@ class PhotoAddView(LoginRequiredMixin, View):
         else:
             raise forms.ValidationError('you need to add a photo')
 
-class AddDeleteView(OwnerDeleteView):
-    model = Add
-    success_url = reverse_lazy('add:owner_list')
-    template_name = 'add/delete.html'
-
 
 class PhotoDeleteView(LoginRequiredMixin, View):
 
@@ -221,8 +239,14 @@ class PhotoDeleteView(LoginRequiredMixin, View):
             pic.delete()
             return redirect(reverse('add:owner_detail', args=[pic.add.id]))
         raise forms.ValidationError('you are not the user')
+# <----------------------------------------------------------------------------------------------------->
 
 
+
+
+
+# Comment
+# <----------------------------------------------------------------------------------------------------->
 class CommentView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
@@ -246,8 +270,14 @@ class CommentDeleteView(OwnerDeleteView):
         pint(a.id)
         pint(type(a.id))
         return reverse('add:add_detail', args=[a.id])
+# <----------------------------------------------------------------------------------------------------->
 
 
+
+
+
+# Saved
+# <----------------------------------------------------------------------------------------------------->
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateSavedView(LoginRequiredMixin, View):
 
@@ -270,8 +300,14 @@ class DeleteSavedView(LoginRequiredMixin, View):
         except Saved.DoesNotExist as e:
             pass
         return HttpResponse()
+# <----------------------------------------------------------------------------------------------------->
 
 
+
+
+
+# Offered Price
+# <----------------------------------------------------------------------------------------------------->
 class OfferedPriceView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
@@ -303,13 +339,17 @@ class OfferedPriceView(LoginRequiredMixin, View):
 class OfferedPriceDelete(LoginRequiredMixin, View):
 
     def post(self, request, pk):
-        pint(request.user)
         a = get_object_or_404(Add, pk=pk)
         o = get_object_or_404(OfferedPrice, owner=request.user, add=a)
         o.delete()
         return redirect(reverse('add:add_detail', args=[a.id]))
+# <----------------------------------------------------------------------------------------------------->
 
 
+
+
+# Feature
+# <----------------------------------------------------------------------------------------------------->
 class FeatureView(LoginRequiredMixin, View):
 
     def post(self, request, pk):
@@ -321,4 +361,34 @@ class FeatureView(LoginRequiredMixin, View):
             row.save()
             return redirect(reverse('add:owner_detail', args=[a.id]))
         messages.add_message(request, messages.INFO, 'can only save 15 features')
+        return redirect(reverse('add:owner_detail', args=[a.id]))
+
+class FeatureUpdateView(LoginRequiredMixin, View):
+
+    def get(self, request, pk):
+        a = get_object_or_404(Add, owner=request.user.id)
+        f = get_object_or_404(Feature, pk=pk, add=a.id)
+        fm = FeatureForm(instance=f)
+        contx = {'form':fm, 'row':a.id}
+        return render(request, 'add/add_update.html', contx)
+
+    def post(self, request, pk):
+        a = get_object_or_404(Add, owner=request.user.id)
+        f = get_object_or_404(Feature, pk=pk, add=a.id)
+        fm = FeatureForm(request.POST, instance=f)
+        if fm.is_valid():
+            fm.save()
+            return redirect(reverse('add:owner_detail', args=[a.id]))
+        messages.add_message(request, messages.INFO, 'can only save 15 features')
+        return redirect(reverse('add:owner_detail', args=[a.id]))
+
+
+class FeatureDeleteView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        a = get_object_or_404(Add, owner=request.user.id)
+        f = get_object_or_404(Feature, pk=pk, add=a.id)
+        pint('working1')
+        f.delete()
+        pint('working')
         return redirect(reverse('add:owner_detail', args=[a.id]))

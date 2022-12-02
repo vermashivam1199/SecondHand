@@ -17,7 +17,7 @@
                 </li>
             {% endfor %}
         </ul>
-        {% if not user == add.owner %}
+        {% if user != add.owner and user.is_authenticated %}
             <form action="{% url 'add:offered_price' add.id %}" method="POST"  onsubmit="offered_price_js(event, this)">
                 {% csrf_token %}
                 {{ offered_price_fm|crispy }}
@@ -28,12 +28,14 @@
                 <input type="submit" value="Delete offer">
             </form>
         {% endif %}
-        <h1>Add Comment</h1>
-        <form action="{% url 'add:comment' add.id %}" method="POST" onsubmit="comment_change_js(event, this)" id = "newform">
-            {% csrf_token %}
-            {{ comment_fm|crispy }}
-            <input type="submit" value="Save comment">
-        </form>
+        {% if user.is_authenticated %}
+            <h1>Add Comment</h1>
+            <form action="{% url 'add:comment' add.id %}" method="POST" onsubmit="comment_change_js(event, this)" id = "newform">
+                {% csrf_token %}
+                {{ comment_fm|crispy }}
+                <input type="submit" value="Save comment">
+            </form>
+        {% endif %}
         <ul id="comment_list" style="list-style-type: none;">
             {% for comment in comments %}
                 <li>
