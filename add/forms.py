@@ -27,12 +27,9 @@ class PhotoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
 
-        pint(kwargs.get('photo_list'))
         if kwargs.get('photo_list'):
-            pint('init working')
             self.photo_list = kwargs.pop('photo_list')
         else:
-            pint('else init working')
             self.photo_list = 0
         if kwargs.get('current_pic'):
             self.current_pic = kwargs.pop('current_pic')
@@ -44,10 +41,7 @@ class PhotoForm(forms.ModelForm):
         cleaned_data = super().clean()
         pic = cleaned_data.get('picture')
         if self.photo_list and self.current_pic:
-           
-            pint('total----',int(self.photo_list) + int(self.current_pic))
-            if int(self.photo_list) + int(self.current_pic) > 5:
-                pint('if working')
+            if int(self.photo_list) + int(self.current_pic) > self.max_photo_upload_limit:
                 self.add_error('picture', f'max pics is 5')
         if pic is None:
             return

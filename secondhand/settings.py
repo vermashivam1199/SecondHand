@@ -34,12 +34,19 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.admindocs",
+    
+
+
+
     "add",
     "home",
     "crispy_forms",
@@ -54,6 +61,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.contrib.admindocs.middleware.XViewMiddleware",
+
+
+    
     "add.middlewares.MyMiddleware",
 ]
 
@@ -77,7 +88,9 @@ TEMPLATES = [
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [STATIC_DIR]
+
 WSGI_APPLICATION = "secondhand.wsgi.application"
+ASGI_APPLICATION = "secondhand.asgi.application"
 
 
 # Database
