@@ -6,6 +6,6 @@
             {% csrf_token %}
             {{ form|crispy }}
             <input type="submit" value="Svae image">
-            <input type="submit" value="Done" onclick="window.location.href='{% url 'user_profile:profile_page' %}';return false;">
+            <input type="submit" value="Done" onclick="window.location.href='{% url 'add:owner_detail' pk %}';return false;">
         </form>
 {% endblock %}

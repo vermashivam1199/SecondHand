@@ -6,7 +6,9 @@
         {% if adds %}
             {% for add in adds %}
                 <div>
-                <a href = "{% url 'add:owner_detail' add.pk %}">{{ add.name }}</a><br>
+                <a href = "{% url 'add:owner_detail' add.pk %}">{{ add.name }}
+                    <img style="max-width:50%; display:block; margin-left: auto; margin-right: auto;" src="{% url 'add:stream_cover_photo' add.id %}" alt="PIC IS NOT WORKING">
+                </a><br>
                 </div>
             {% endfor %}
         {% else %}

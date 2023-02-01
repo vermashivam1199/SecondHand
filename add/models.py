@@ -109,6 +109,15 @@ class Photo(models.Model):
     picture = models.BinaryField(null=False, editable=True, blank=False)
     content_type = models.CharField(max_length=256, null=False, help_text='The MIMEType of the file', blank=False)
     add = models.ForeignKey('Add', on_delete=models.CASCADE, related_name='add_photo')
+    cover = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return self.add.name
+
+class CoverPhoto(models.Model):
+    picture = models.BinaryField(null=False, editable=True, blank=False)
+    content_type = models.CharField(max_length=256, null=False, help_text='The MIMEType of the file', blank=False)
+    add = models.OneToOneField('Add', on_delete=models.CASCADE, related_name='cover_photo')
 
     def __str__(self) -> str:
         return self.add.name

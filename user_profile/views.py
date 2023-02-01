@@ -34,16 +34,13 @@ class UserProfileView(LoginRequiredMixin, View):
         """
         Displays user profile page
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             owner: An instance of model class User
             categories: A list containing instance of model class Category
             favrioute: A list of category IDs that used has set to favrioute
         :return: HttpResponse
         """
-
-        if 'pk' in request.session:
-            del request.session['pk']
 
         u, categories = await asyncio.gather(self.helper_user(), self.helper_cat())
         pint(categories)
@@ -84,7 +81,7 @@ class OwnerProfilePhotoUpdateView(LoginRequiredMixin, View):
         """
         Displays user's profile photo update form
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class OwnerProfilePhotoForm
         :return: HttpResponse
@@ -98,7 +95,7 @@ class OwnerProfilePhotoUpdateView(LoginRequiredMixin, View):
         """
         Updates a user's profile photo
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class OwnerProfilePhotoForm
         :return if form valid: HttpResponseRedirect
@@ -119,7 +116,7 @@ def stream_profile_pic(request):
     """
     this view function displays returns user's profile photo
 
-    :param request: ASGIRequest
+    :param ASGIRequest request: Request object
     :return: HttpResponse
     """
 
@@ -140,7 +137,7 @@ class OwnerProfilePhotoDeleteView(LoginRequiredMixin, View):
         """
         Displays profile picture delete form
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :return: HttpResponse
         """
 
@@ -151,7 +148,7 @@ class OwnerProfilePhotoDeleteView(LoginRequiredMixin, View):
         """
         Deletes user's profile picture
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :return: HttpResponseRedirect
         """
 
@@ -170,7 +167,7 @@ class OwnerAboutView(View):
         """
         Displays add owner profile page
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class OwnerProfilePhotoForm
         :return: HttpResponse
@@ -191,8 +188,8 @@ class CreateFavriouteView(LoginRequiredMixin, View):
         """
         Creates an instance of Favrioute modle class
 
-        :param request: ASGIRequest
-        :param pk: int
+        :param ASGIRequest request: Request object
+        :param int pk: primary key of Catagory model
         :return: HttpResponse
         """
 
@@ -213,8 +210,8 @@ class DeleteFavriouteView(LoginRequiredMixin, View):
         """
         Deletes an instance of Favrioute modle class
 
-        :param request: ASGIRequest
-        :param pk: int
+        :param ASGIRequest request: Request object
+        :param int pk: primary key of Catagory model
         :return: HttpResponse
         """
 
@@ -232,7 +229,7 @@ class UserUpdateView(LoginRequiredMixin, View):
         """
         Displays UserUpdateForm
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class UserUpdateForm
         :return: HttpResponse
@@ -245,7 +242,7 @@ class UserUpdateView(LoginRequiredMixin, View):
         """
         Updates instance of User model class
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class UserUpdateForm
         :return if form valid: HttpResponseRedirect
@@ -268,7 +265,7 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         """
         Displays PasswordChangeForm
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class UserUpdateForm
         :return: HttpResponse
@@ -282,7 +279,7 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         """
         Updates user password
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class UserUpdateForm
         :return if form valid: HttpResponseRedirect

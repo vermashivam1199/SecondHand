@@ -25,14 +25,13 @@ class PhotoForm(forms.ModelForm):
         model = Photo
         fields = ['picture' ]
 
-    def __init__(self, *args, **kwargs):
-
+    def __init__(self, *args, **kwargs): # overriding __init__ method
         if kwargs.get('photo_list'):
-            self.photo_list = kwargs.pop('photo_list')
+            self.photo_list = kwargs.pop('photo_list') # creating instance variable of number of photos stored in an add
         else:
             self.photo_list = 0
         if kwargs.get('current_pic'):
-            self.current_pic = kwargs.pop('current_pic')
+            self.current_pic = kwargs.pop('current_pic')# creating instance variable of number of photos sent by the user
         else:
             self.current_pic = None
         super(PhotoForm, self).__init__(*args, **kwargs)
@@ -41,7 +40,7 @@ class PhotoForm(forms.ModelForm):
         cleaned_data = super().clean()
         pic = cleaned_data.get('picture')
         if self.photo_list and self.current_pic:
-            if int(self.photo_list) + int(self.current_pic) > self.max_photo_upload_limit:
+            if int(self.photo_list) + int(self.current_pic) > self.max_photo_upload_limit: # checking if number of photose sent by the user and number of photos in an add exceeds the maximum limit
                 self.add_error('picture', f'max pics is 5')
         if pic is None:
             return
@@ -126,7 +125,7 @@ class FeatureForm(forms.ModelForm):
         cleaned_data = super().clean()
         if self.add_id:
             feature = Feature.objects.filter(add=self.add_id)
-            if len(feature) + 1 > self.max_feature_limit:
+            if len(feature) + 1 > self.max_feature_limit: 
                 raise forms.ValidationError({'feature':[f'max feature limit reached, you can only upload f{self.max_feature_limit} features']})
 
 

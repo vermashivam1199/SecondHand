@@ -5,18 +5,18 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-
+from django.middleware.csrf import get_token
 from add.tests import pint
-from .models import (Add, Comment, Report, ReportCategory, History, Saved, Category, OfferedPrice, Photo, Feature)
+from .models import (Add, Comment, Report, ReportCategory, History, Saved, Category, OfferedPrice, Photo, Feature, CoverPhoto)
 from .forms import AddForm, PhotoForm, PhotoUpdateForm, CommentForm, OfferedPriceForm, FeatureForm
 from django.urls import reverse_lazy, reverse
 from .owner import OwnerDeleteView
 from django import forms
-
+import json
+from django.core.files.uploadedfile import InMemoryUploadedFile, TemporaryUploadedFile
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.utils import IntegrityError
-
 import asyncio
 from asgiref.sync import sync_to_async
 
@@ -238,6 +238,33 @@ def stream_file(request, pk):
     return response
 
 
+@sync_to_async(thread_sensitive=False)
+def stream_cover_photo(request, pk):
+    """
+    This view sends instance of Photo class
+
+    :param ASGIRequest request: Request object
+    :param int pk: primary key of Photo tabel
+    :return: HttpResponse
+    """
+
+    response = HttpResponse()
+    add = get_object_or_404(Add, pk=pk, owner=request.user)
+    cov = CoverPhoto.objects.filter(add=add)
+    add_pics = add.add_photo.all()
+    if cov: # chaecking if there is any new cover photo for the current add
+        res = cov[0] # deleting new cover photo
+    for i in add_pics:# checking if there is any existing cover photo for the current add
+        if i.cover:
+            res = i
+    if res.content_type:
+        response['Content-Type'] = res.content_type
+        response['Content-Length'] = len(res.picture)
+        response.write(res.picture)
+    return response
+
+
+
 class AddDeleteView(OwnerDeleteView):
     """This view deletes Add"""
 
@@ -305,10 +332,16 @@ class OwnerDetailView(LoginRequiredMixin, View):
         :return: HttpResponse
         """
 
+        if 'pk' in request.session: # deleting session used to create an add
+            del request.session['pk']
+
         add = await sync_to_async(get_object_or_404, thread_sensitive=False)(Add, pk=pk, owner=self.request.user)
         pic, features = await asyncio.gather(self.helper_pic(add), self.helper_features(add))
         fm = FeatureForm()
-        contx = {'add':add, 'picture':pic, 'form':fm, 'features':features}
+        pic_id = [p.id for p in pic] # getting lits of photo ids of the current add
+        pic_id_json = json.dumps(pic_id) # converting that view into json 
+        csrf_token = get_token(request) # getting csrf token
+        contx = {'add':add, 'picture':pic, 'form':fm, 'features':features, 'pic_id_json':pic_id_json, 'csrf_token':csrf_token}
         return await self.helper_render(contx)
 # <----------------------------------------------------------------------------------------------------->
 
@@ -323,7 +356,6 @@ class PhotoCreateView(LoginRequiredMixin, View):
     
     Works with AddCreateView
     """
-
     sucess_url = reverse_lazy('user_profile:profile_page')
     home_url = reverse_lazy('home:all')
 
@@ -337,8 +369,14 @@ class PhotoCreateView(LoginRequiredMixin, View):
         :return: HttpResponse
         """
 
+        if 'pk' in request.session: # this 'pk'(primary key) session allows backend to know the current instance of Add
+                pk = request.session['pk']
+                a = get_object_or_404(Add, pk=pk) # Gets Add object by using Add primary key from session
+        else: # if there is no 'pk'(primary key) in the session then you won't be able to save photo
+            raise forms.ValidationError('no add found')
+
         fm = PhotoForm()
-        contx = {'form':fm}
+        contx = {'form':fm, 'pk':pk}
         return render(request, 'add/add_photo.html', contx)
 
     def post(self,request):
@@ -368,10 +406,10 @@ class PhotoCreateView(LoginRequiredMixin, View):
                 row = fm.save(file, commit=False)
                 row.add = a
                 row.save()
-                res = redirect(self.sucess_url)
+                res = redirect(reverse('add:owner_detail', args=[pk]))
                 files_len -= 1 # subtracting the current pics left
             else:
-                contx = {'form':fm}
+                contx = {'form':fm, 'pk':pk}
                 return render(request, 'add/add_photo.html', contx)
         return res
 
@@ -439,7 +477,7 @@ class PhotoAddView(LoginRequiredMixin, View):
 
         a = get_object_or_404(Add, pk=add_id, owner=self.request.user)
         fm = PhotoForm()
-        contx = {'form':fm, 'row':a.id}
+        contx = {'form':fm, 'pk':a.id}
         return render(request, 'add/add_photo.html', contx)
 
     def post(self,request, add_id):
@@ -472,7 +510,7 @@ class PhotoAddView(LoginRequiredMixin, View):
                 res = redirect(reverse('add:owner_detail', args=[a.id]))
                 file_l -= 1 # subtracting the current pics left
             else:
-                contx = {'form':fm}
+                contx = {'form':fm, 'pk':a.id}
                 return render(request, 'add/add_photo.html', contx)
         return res
 
@@ -506,6 +544,72 @@ class PhotoDeleteView(LoginRequiredMixin, View):
             pic.delete()
             return redirect(reverse('add:owner_detail', args=[pic.add.id]))
         raise forms.ValidationError('you are not the user')
+
+class CoverPhotoView(LoginRequiredMixin, View):
+
+    def post(self, request, pk):
+        add = get_object_or_404(Add, pk=pk, owner=request.user)
+        if "image" in request.FILES:
+            pint("working")
+            f = request.FILES["image"]
+            if isinstance(f, InMemoryUploadedFile) or isinstance(f, TemporaryUploadedFile):
+                try: # checking if theres any photo related to the current add in cover photo
+                    bytearr = f.read()
+                    instance = CoverPhoto(picture=bytearr, content_type=f.content_type, add=add)
+                    add_pics = add.add_photo.all()
+                    for i in add_pics: # checking if there is any existing cover photo for the current add
+                        if i.cover:
+                            i.cover = False # converting all existing photos to Flase
+                            i.save()
+                    instance.save()
+                except IntegrityError:
+                    cov = get_object_or_404(CoverPhoto, add=add)
+                    cov.delete() # deleting new cover photo
+                    bytearr = f.read()
+                    instance = CoverPhoto(picture=bytearr, content_type=f.content_type, add=add)
+                    instance.save()
+        elif "pic_id" in request.POST:
+            cov = CoverPhoto.objects.filter(add=add)
+            add_pics = add.add_photo.all()
+            if cov: # checking if there is any new cover photo for the current add
+                cov[0].delete() # deleting new cover photo
+            for i in add_pics:# checking if there is any existing cover photo for the current add
+                if i.cover:
+                    i.cover = False # converting all existing photos to Flase
+                    i.save()
+            pk = request.POST["pic_id"]
+            pic = get_object_or_404(Photo, pk=pk)
+            pic.cover = True
+            pic.save()
+        return redirect(reverse('add:owner_detail', args=[add.id]))
+
+class CoverPhotoDeleteView(LoginRequiredMixin, View):
+
+    def get(self,request, pk):
+        """
+        Displays form
+
+        :param ASGIRequest request: Request object
+        :param int pk: Primary key of Photo table
+        :return: HttpResponse
+        """
+
+        add = get_object_or_404(Add, pk=pk, owner=request.user)
+        return render(request, 'add/cover_delete.html', {'add':add})
+
+    def post(self, request, pk):
+        add = get_object_or_404(Add, pk=pk, owner=request.user)
+        cov = CoverPhoto.objects.filter(add=add)
+        add_pics = add.add_photo.all()
+        if cov: # checking if there is any new cover photo for the current add
+            cov[0].delete() # deleting new cover photo
+        for i in add_pics:# checking if there is any existing cover photo for the current add
+            if i.cover:
+                i.cover = False # converting all existing photos to Flase
+                i.save()
+        return redirect(reverse('add:owner_detail', args=[add.id]))
+
+
 # <----------------------------------------------------------------------------------------------------->
 
 
@@ -743,6 +847,7 @@ class FeatureDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk_feature, pk_add):
         """
         Delete the feature of current add
+        
         :param ASGIRequest request: Request object
         :param int pk_add: Primary key of Add table
         :param int pk_feature: Primary key of Feature table

@@ -3,7 +3,7 @@ from django.urls import path
 from.views import (
     AddListView, AddCreateView, PhotoCreateView, AddDetailView, AddUpdateView, stream_file, OwnerListView, OwnerDetailView, PhotoUpdateView, PhotoAddView,
     AddDeleteView, PhotoDeleteView, CommentView, CommentDeleteView, CreateSavedView, DeleteSavedView, OfferedPriceView, OfferedPriceDelete, FeatureView,
-    FeatureUpdateView, FeatureDeleteView
+    FeatureUpdateView, FeatureDeleteView, CoverPhotoView, stream_cover_photo, CoverPhotoDeleteView
 )
 
 
@@ -30,4 +30,7 @@ urlpatterns = [
     path('feature_create/<int:pk>', FeatureView.as_view(), name='feature_create'),
     path('feature_update/<int:pk>', FeatureUpdateView.as_view(), name='feature_update'),
     path('feature_delete/<int:pk_feature>/<int:pk_add>', FeatureDeleteView.as_view(), name='feature_delete'),
+    path('cover_photo/<int:pk>', CoverPhotoView.as_view(), name='cover_photo'),
+    path('stream_cover_photo/<int:pk>', stream_cover_photo, name='stream_cover_photo'),
+    path('cover_photo_delete/<int:pk>', CoverPhotoDeleteView.as_view(), name='cover_photo_delete'),
 ]

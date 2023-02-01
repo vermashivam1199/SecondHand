@@ -30,7 +30,7 @@ class RegisterView(View):
         """
         Displays RigisterForm
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class RegisterForm
         :return: HttpResponse
@@ -43,7 +43,7 @@ class RegisterView(View):
     def post(self, request):
         """
         Creates a new user
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             form: An instance of form class RegisterForm
         :return if form valid: HttpResponseRedirect
@@ -67,7 +67,7 @@ class HomeView(View):
         """
         Displays homepage with recommendation
 
-        :param request: ASGIRequest
+        :param ASGIRequest request: Request object
         :context: 
             count_list: An instance of model class Category
         :return: HttpResponse
