@@ -1,5 +1,3 @@
-from email.policy import default
-from unicodedata import name
 from django.db import models
 from django.contrib.auth.models import User
 from .managers import RecemondationManager

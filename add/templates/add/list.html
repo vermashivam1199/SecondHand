@@ -1,36 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-        <a href = "{% url 'home:all' %}">home</a><br>
+<style>
+    .star {
+        background-color: transparent; 
+        color: black; 
+        border: none;
+    }
+</style>
         <h1>List</h1>
         {% if adds %}
             {% for add in adds %}
-                <li>
-                    <a href = "{% url 'add:add_detail' add.pk %}">{{ add.name }}
-                        <img style="max-width:50%; display:block; margin-left: auto; margin-right: auto;" src="{% url 'add:stream_cover_photo' add.id %}" alt="PIC IS NOT WORKING">
-                    </a>
-                    {% if user.is_authenticated %}
+            <div class="card" style="width: 18rem;">
+                <a href="{% url 'add:add_detail' add.pk %}" style="text-decoration:none; color: black;">
+                    <img src="{% url 'add:stream_cover_photo' add.id %}" class="card-img-top" alt="...">
+                    <div class="card-body">
+                    <h5 class="card-title">{{ add.name }}</h5>
+                    <p class="card-text">{{ add.description }}</p>
+                  {% if user.is_authenticated %}
                     <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
-                    <a href="#" onclick=
+                    <button class="star" href="#" onclick=
                         "favPost('{% url 'add:delete_saved' add.id %}', {{ add.id }} );return false;"
                         {% if add.id not in saved %} style="display: none;" {% endif %}
                         id="favorite_star_{{add.id}}">
-                        <span class="fa-stack" style="vertical-align: middle;">
-                        <i class="fa fa-star fa-stack-1x" style="color: orange;"></i>
-                        <i class="fa fa-star-o fa-stack-1x"></i>
-                        </span>
-                    </a>
+                        <i class="bi bi-bookmark-star-fill"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-star-fill" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M2 15.5V2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.74.439L8 13.069l-5.26 2.87A.5.5 0 0 1 2 15.5zM8.16 4.1a.178.178 0 0 0-.32 0l-.634 1.285a.178.178 0 0 1-.134.098l-1.42.206a.178.178 0 0 0-.098.303L6.58 6.993c.042.041.061.1.051.158L6.39 8.565a.178.178 0 0 0 .258.187l1.27-.668a.178.178 0 0 1 .165 0l1.27.668a.178.178 0 0 0 .257-.187L9.368 7.15a.178.178 0 0 1 .05-.158l1.028-1.001a.178.178 0 0 0-.098-.303l-1.42-.206a.178.178 0 0 1-.134-.098L8.16 4.1z"/>
+                        </svg>
+                    </button>
                     <!-- the second href -->
-                    <a href="#" onclick=
+                    <button class="star" href="#" onclick=
                          "favPost('{% url 'add:create_saved' add.id %}', {{ add.id }} );return false;"
                         {% if add.id in saved %} style="display: none;" {% endif %}
                         id="unfavorite_star_{{add.id}}">
-                        <span class="fa-stack" style="vertical-align: middle;">
-                        <i class="fa fa-star fa-stack-1x" style="display: none; color: orange;"></i>
-                        <i class="fa fa-star-o fa-stack-1x"></i>
-                        </span>
-                    </a>
+                        <i class="bi bi-bookmark-star"></i>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-star" viewBox="0 0 16 16">
+                            <path d="M7.84 4.1a.178.178 0 0 1 .32 0l.634 1.285a.178.178 0 0 0 .134.098l1.42.206c.145.021.204.2.098.303L9.42 6.993a.178.178 0 0 0-.051.158l.242 1.414a.178.178 0 0 1-.258.187l-1.27-.668a.178.178 0 0 0-.165 0l-1.27.668a.178.178 0 0 1-.257-.187l.242-1.414a.178.178 0 0 0-.05-.158l-1.03-1.001a.178.178 0 0 1 .098-.303l1.42-.206a.178.178 0 0 0 .134-.098L7.84 4.1z"/>
+                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
+                        </svg>
+                    </button>
                     {% endif %}
-                </li>
+                </div>
+                </a>
+              </div>
             {% endfor %}
         {% else %}
             <p>there are no adds</p>

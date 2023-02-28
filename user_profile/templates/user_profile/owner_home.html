@@ -1,12 +1,25 @@
 {% extends "base.html" %}
+{% block navbardropdown %}
+    <li><a class="dropdown-item" href="{% url 'user_profile:profile_photo' %}">Profile Photo</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:user_update' %}">Profile Update</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:password_update' %}">Password Change</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:profile_photo_delete' %}">Delete Profile Photo</a></li>
+{% endblock %}
+
+{% block navbar %}
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'add:owner_list' %}">Your Ads</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'home:register' %}?next={{ request.path }}">Sign up</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'add:add_create' %}">New Ad</a>
+</li>
+{% endblock %}
+
 {% block content %}
         <img style="max-width: 40mm; max-height: 40mm; display:block; margin-left: auto; margin-right: auto; float: right;" src="{% url 'user_profile:show_profile_photo' %}">
-        <a href="{% url 'add:owner_list' %}">List</a><br>
-        <a href="{% url 'user_profile:profile_photo' %}">Add/Update profile photo</a><br>
-        <a href="{% url 'user_profile:user_update' %}">User Update</a><br>
-        <a href="{% url 'user_profile:password_update' %}">Password Update</a><br>
-        <a href="{% url 'user_profile:profile_photo_delete' %}">Delete profile photo</a><br>
-        <a href="{% url 'user_profile:chat_list' %}">Chats</a><br>
         <h3>{{ owner.username }}</h3>
         <h3>{{ owner.first_name }}</h3>
         <h3>{{ owner.email }}</h3>

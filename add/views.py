@@ -249,7 +249,7 @@ def stream_cover_photo(request, pk):
     """
 
     response = HttpResponse()
-    add = get_object_or_404(Add, pk=pk, owner=request.user)
+    add = get_object_or_404(Add, pk=pk)
     cov = CoverPhoto.objects.filter(add=add)
     add_pics = add.add_photo.all()
     if cov: # chaecking if there is any new cover photo for the current add
@@ -342,7 +342,8 @@ class OwnerDetailView(LoginRequiredMixin, View):
         pic_id_json = json.dumps(pic_id) # converting that view into json 
         csrf_token = get_token(request) # getting csrf token
         contx = {'add':add, 'picture':pic, 'form':fm, 'features':features, 'pic_id_json':pic_id_json, 'csrf_token':csrf_token}
-        return await self.helper_render(contx)
+        output =  await self.helper_render(contx)
+        return output
 # <----------------------------------------------------------------------------------------------------->
 
 

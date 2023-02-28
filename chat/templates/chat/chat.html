@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+    <style>
+        #owner {
+            text-align: right;
+        }
+        #other {
+            text-align: left;
+        }
+        .time-user {
+            color: aqua;
+            font-size: x-small;
+        }
+        .chat-list {
+            list-style-type: none;
+            font-size: xx-large;
+        }
+        
+    </style>
+        <div id="header-div">
+            <h1>{{ other_user }}</h1>
+            <img style="max-width: 40mm; max-height: 40mm; display:block; margin-left: auto; margin-right: auto; float: right;" src="{% url 'user_profile:show_profile_photo_chat' other_user.pk %}">
+        </div>
+        <div id="chat-box">
+            {% for chat in chats %}
+                {% if user == chat.user %}
+                    <li id="owner" class="chat-list">
+                        {{ chat.message }}
+                        <span class="time-user">{{ chat.timestamp }} {{ chat.user }}</span>
+                    </li>
+                {% else %}
+                    <li id="other" class="chat-list">
+                        {{ chat.message }}
+                        <span class="time-user">{{ chat.timestamp }} {{ chat.user }}</span>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <input type="text" id="chat-input" size="100"><br>
+        <input type="button" value="send" id="chat-submit">
+        {{ group_name|json_script:"group-name"}}
+        {{ user_uuid|json_script:"user-name"}}
+        <script>
+            const groupName = JSON.parse(document.getElementById('group-name').textContent)
+            console.log(groupName)
+            userUuid = JSON.parse(document.getElementById('user-name').textContent)
+            var ws = new WebSocket('ws://' + window.location.host + '/ws/'+ groupName + '/')
+
+            ws.onopen = function(){
+                console.log('websocket connection open');
+            };
+            ws.onmessage = function(event){
+                var rec_data = JSON.parse(event.data);
+                var chat_box = document.getElementById("chat-box")
+                var li = document.createElement("li");
+                var span = document.createElement("span")
+                span.style = "color: aqua; font-size: x-small;";
+                if (userUuid === rec_data.user_uuid){
+                    li.id = "owner";
+                    li.style = "text-align: right; list-style-type: none; font-size: xx-large;";
+                }
+                else {
+                    li.id = "other";
+                    li.style = "text-align: left; list-style-type: none; font-size: xx-large;";
+                }
+                var txt = document.createTextNode(rec_data.msg);
+                var time = new Date().toLocaleTimeString();
+                console.log(time)
+                var txt_span = document.createTextNode(time);
+                span.appendChild(txt_span)
+                li.appendChild(txt)
+                li.appendChild(span)
+                chat_box.appendChild(li)
+            };
+            ws.onclose = function(event){
+                console.log('connection closed', event);
+            };
+            document.getElementById('chat-submit').onclick = function(event){
+                const messageValue = document.getElementById('chat-input')
+                const msg = messageValue.value
+                ws.send(JSON.stringify({
+                    'msg':msg,
+                    'user_uuid': userUuid
+                }))
+                messageValue.value = ""
+            }
+
+        </script>
+{% endblock %}

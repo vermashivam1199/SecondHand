@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+        <h1>Chat List</h1>
+        {% for group in groups %}
+        <h1>{{ user }}</h1>
+                {% if user == group.user1 %}
+                        <a href="{% url 'chat:chat_' group.user2.user_uuid %}">{{ group.user2 }} {{ group.user2.user_uuid }}</a>
+                {% else %}
+                        <a href="{% url 'chat:chat_' group.user1.user_uuid %}">{{ group.user1 }} {{ group.user1.user_uuid }}</a>
+                {% endif %}
+        {% endfor %}
+{% endblock %}

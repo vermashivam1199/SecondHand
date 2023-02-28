@@ -2,25 +2,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-<!-- Edit dj4e-samples/settings.py and add APP_NAME = 'DJ4E Samples' or similar -->
+
 <title>{% block title %}{{ settings.APP_NAME }}{% endblock %}</title>
+<!-- ccs bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" 
+rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
 
-<!-- Replace this value (42-42) with the one provided by the autograder -->
-<meta name="dj4e" content="42-42">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" 
+integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
 
-<meta name="dj4e-code" content="99999999">
+<!-- dj4e -->
 
-<link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css"
-    crossorigin="anonymous">
-
-<link rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap-theme.min.css"
-    crossorigin="anonymous">
-
-<link rel="stylesheet"
-    href="https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css"
-     crossorigin="anonymous">
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
     crossorigin="anonymous"></script>
@@ -36,14 +28,51 @@
 
 <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/v4-shims.css">
 
-<meta name="dj4e-version" content="2022-09-01">
+
 
 {% block head %} {% endblock %}
 
 </head>
 <body>
-<div class="container">
-{% block navbar %} {% endblock %}
+  <nav class="navbar navbar-expand-lg bg-body-tertiary" style="background-color: rgb(165, 66, 66);">
+    <div class="container-fluid" style="background-color: rgb(165, 66, 66); padding: 7px;">
+      <a class="navbar-brand" href="{% url 'home:all' %}">SecondHand</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarScroll" aria-controls="navbarScroll" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarScroll">
+        <ul class="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll" style="--bs-scroll-height: 100px;">
+        {% block navbar %}
+        {% endblock %} 
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Settings
+            </a>
+            <ul class="dropdown-menu">
+            {% if user.is_authenticated %}
+              <li><a class="dropdown-item" href="{% url 'user_profile:profile_page' %}">Profile</a></li>
+              <li><a class="dropdown-item" href="{% url 'logout' %}?next={{ request.path }}">Logot</a></li>
+            {% else %}
+              <li><a class="dropdown-item" href="{% url 'login' %}?next={{ request.path }}">Login</a></li>
+            {% endif %}
+              <li><hr class="dropdown-divider"></li>
+              {% block navbardropdown %}
+              {% endblock %}
+            </ul>
+          </li>
+        </ul>
+        <form class="d-flex" role="search">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit" style="background-color: transparent; color: black; border: none;">
+            <i class="bi bi-search"></i>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </nav>
 {% block welcome %} {% endblock %}
 {% block messages %}
     {% if messages %}
@@ -56,7 +85,6 @@
 {% endblock %}
 {% block content %}
 {% endblock %}
-</div>
 {% block footer %} {% endblock %}
 </body>
 </html>

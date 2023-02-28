@@ -10,8 +10,8 @@ from django.urls import reverse_lazy, reverse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from .models import OwnerProfilePhoto, Chat, UserMessage
-from .forms import OwnerProfilePhotoForm, ChatForm, UserUpdateForm
+from .models import OwnerProfilePhoto
+from .forms import OwnerProfilePhotoForm, UserUpdateForm
 from django.http import HttpResponse
 from add.tests import pint
 from add.models import Category, Favrioute
@@ -295,64 +295,20 @@ class PasswordUpdateView(LoginRequiredMixin, View):
         return render(request, 'user_profile/user_update.html', contx)
 
 
+def stream_profile_pic_chat(request, pk):
+    """
+    this view function displays returns user's profile photo
 
+    :param ASGIRequest request: Request object
+    :return: HttpResponse
+    """
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class CreateChatView(LoginRequiredMixin, View):
-
-    def get(self, request, pk):
-        fm = ChatForm()
-        op = get_object_or_404(User, pk=pk)
-        sender = UserMessage.objects.filter(chat__sender=request.user, chat__receiver=op)
-        receiver = UserMessage.objects.filter(chat__receiver=request.user, chat__sender=op)
-        row = (sender | receiver)
-        orderd_row = row.order_by('created_at')
-        contx = {'form':fm, 'ordered_row':orderd_row}
-        return render(request, 'user_profile/chat.html', contx)
-
-    def post(self, request, pk):
-        fm = ChatForm(request.POST)
-        if fm.is_valid():
-            c = fm.cleaned_data.get('chat')
-            rev = get_object_or_404(User, pk=pk)
-            owner_row, created = Chat.objects.get_or_create(sender=request.user, receiver=rev)
-            row = UserMessage(text=c, chat=owner_row)
-            row.save()
-            return redirect(reverse('user_profile:chat', args=[rev.id]))
-        contx = {'form':fm}
-        return render(request, 'user_profile/chat.html', contx)
-
-class ListChatView(LoginRequiredMixin, View):
-
-    def get(self, request):
-        sender = Chat.objects.filter(sender=request.user)
-        receiver = Chat.objects.filter(receiver=request.user)
-        orderd_row = sender | receiver
-        contx = {'ordered_row':orderd_row}
-        return render(request, 'user_profile/chat_list.html', contx)
-
+    owner = get_object_or_404(User, pk=pk)
+    pic = get_object_or_404(OwnerProfilePhoto, owner=owner)
+    response = HttpResponse()
+    if pic.content_type:
+        pint('stream view working')
+        response['Content-Type'] = pic.content_type
+        response['Content-Length'] = len(pic.picture)
+        response.write(pic.picture)
+    return response

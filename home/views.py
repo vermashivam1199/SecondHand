@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from .forms import RegisterForm
+from .models import UserUuid
 from django.urls import reverse_lazy
 from user_profile.models import OwnerProfilePhoto
 from add.tests import pint
@@ -17,6 +18,7 @@ from add.models import (Add, Comment, Report, ReportCategory, History, Saved, Ca
 from django.db.models import Count
 import asyncio
 from django.core.handlers.asgi import ASGIRequest
+from secondhand.tasks import test_funk
 
 
 # Create your views here.
@@ -53,6 +55,8 @@ class RegisterView(View):
         fm = RegisterForm(request.POST)
         if fm.is_valid():
             user =fm.save()
+            user_uuid = UserUuid(user=user)
+            user_uuid.save() #creating seprate uuid for each user
             pro_pic = OwnerProfilePhoto(owner=user) # creating a blank user profile photo
             pro_pic.save() # saving a blank user profile photo
             return redirect(self.sucess_url)
@@ -72,7 +76,7 @@ class HomeView(View):
             count_list: An instance of model class Category
         :return: HttpResponse
         """
-
+        test_funk.delay()
         if request.user.is_authenticated:
             count_list = Category.recemondation.user_recemondations() #custom manager method
         else:
