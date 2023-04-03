@@ -101,8 +101,9 @@ class AddCreateView(LoginRequiredMixin, View):
             row = fm.save(commit=False)
             row.owner = request.user
             row.save()
+            photo_create_link = reverse('add:add_photo', kwargs={"pk":row.id})
             request.session['pk'] = row.pk # saving current add's id in session
-            return redirect(self.sucess_url)
+            return redirect(photo_create_link)
         contx = {'form':fm}
         return render(request, 'add/add_create.html', contx)
 
@@ -360,7 +361,7 @@ class PhotoCreateView(LoginRequiredMixin, View):
     sucess_url = reverse_lazy('user_profile:profile_page')
     home_url = reverse_lazy('home:all')
 
-    def get(self, request):
+    def get(self, request, pk):
         """
         Displays PhotoForm
 
@@ -371,16 +372,16 @@ class PhotoCreateView(LoginRequiredMixin, View):
         """
 
         if 'pk' in request.session: # this 'pk'(primary key) session allows backend to know the current instance of Add
-                pk = request.session['pk']
-                a = get_object_or_404(Add, pk=pk) # Gets Add object by using Add primary key from session
+                session_pk = request.session['pk']
+                 # Gets Add object by using Add primary key from session
         else: # if there is no 'pk'(primary key) in the session then you won't be able to save photo
             raise forms.ValidationError('no add found')
-
+        a = get_object_or_404(Add, pk=pk)
         fm = PhotoForm()
         contx = {'form':fm, 'pk':pk}
         return render(request, 'add/add_photo.html', contx)
 
-    def post(self,request):
+    def post(self,request, pk):
         """
         Creates Photo for current add
 
@@ -395,14 +396,15 @@ class PhotoCreateView(LoginRequiredMixin, View):
         files_len = len(files) # number of photos send thru request
         res = redirect(self.sucess_url)
         if 'pk' in request.session: # this 'pk'(primary key) session allows backend to know the current instance of Add
-                pk = request.session['pk']
-                a = get_object_or_404(Add, pk=pk) # Gets Add object by using Add primary key from session
+                session_pk = request.session['pk']
+                 # Gets Add object by using Add primary key from session
         else: # if there is no 'pk'(primary key) in the session then you won't be able to save photo
             raise forms.ValidationError('no add found')
+        a = get_object_or_404(Add, pk=pk)
         for file in files:
             pic = Photo.objects.filter(add=a.id) # Gets current Photo objects associated with current Add
             photo_l = str(len(pic)) # get total number of photos of current add saved in database
-            fm = PhotoForm(request.POST, request.FILES or None, photo_list=photo_l, current_pic=files_len) # Calling PhotoForm constructer with additional arguments
+            fm = PhotoForm(request.POST, request.FILES or None, photo_list=photo_l, current_pics=files_len) # Calling PhotoForm constructer with additional arguments
             if fm.is_valid():
                 row = fm.save(file, commit=False)
                 row.add = a
@@ -735,7 +737,8 @@ class OfferedPriceView(LoginRequiredMixin, View):
                 row.save()
                 return redirect(reverse('add:add_detail', args=[a.id]))
             contx = {'form':fm}
-            return render(request, 'add/add_photo.html', contx)
+            pint("1xxxxxxxxxxxxxxxxxxxxxxxxxxx")
+            return render(request, 'home/home.html', contx)
 
         except (IntegrityError):
             op = OfferedPrice.objects.get(add=a.id, owner=request.user.id)
@@ -746,8 +749,9 @@ class OfferedPriceView(LoginRequiredMixin, View):
                 row.owner = request.user
                 row.save()
                 return redirect(reverse('add:add_detail', args=[a.id]))
+            pint("2xxxxxxxxxxxxxxxxxxxxxxxxxxx")
             contx = {'form':fm}
-            return render(request, 'add/add_photo.html', contx)
+            return render(request, 'home/home.html', contx)
 
        
 class OfferedPriceDelete(LoginRequiredMixin, View):

@@ -33,7 +33,7 @@ class Tag(models.Model):
 class OfferedPrice(models.Model):
     price_offered = models.DecimalField(max_digits=10, decimal_places=2)
     add = models.ForeignKey('Add',on_delete=models.CASCADE, related_name='add_offered_price')
-    owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_offered_price')
+    owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_offered_price') #current user that offered price
 
     def __str__(self) -> str:
         return str(self.price_offered)

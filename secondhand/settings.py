@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "user_profile",
     "chat",
+    "notification",
 ]
 
 MIDDLEWARE = [
@@ -160,9 +161,9 @@ CHANNEL_LAYERS = {
 # Celery settings
 
 CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
-CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TASK_SERIALIZER = "json"
-CELERY_TIMEZONE = "Asia/Kolkata"
+accept_content = ["application/json"]
+result_serializer = "json"
+task_serializer = "json"
+timezone = "Asia/Kolkata"
 
-CELERY_RESULT_BACKEND = "django-db"
+result_backend = "django-db"

@@ -21,6 +21,7 @@ from django.core.handlers.asgi import ASGIRequest
 from secondhand.tasks import test_funk
 
 
+
 # Create your views here.
 
 class RegisterView(View):
@@ -78,8 +79,13 @@ class HomeView(View):
         """
         test_funk.delay()
         if request.user.is_authenticated:
+            o = OfferedPrice.objects.filter(owner=request.user)
+            for i in o:
+                pint(i.add.owner.username)
+        if request.user.is_authenticated:
             count_list = Category.recemondation.user_recemondations() #custom manager method
         else:
             count_list = Category.recemondation.anonomous_user_recemondations() #custom manager method
         contx = {'count_list':count_list}
         return render(request, 'home/home.html', contx)
+    

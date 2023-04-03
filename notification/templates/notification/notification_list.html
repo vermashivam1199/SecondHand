@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block navbar %}
+{% endblock %} 
+{% block content %}
+        <h1>Notifications</h1>
+        {% for row in notifications %}
+            <a href="{% url 'notification:notification_deatil' row.id %}">{{ row.sender }} {{ row.broadcast_time }}</a><br>
+        {% endfor %}
+{% endblock %}

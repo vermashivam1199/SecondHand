@@ -24,4 +24,5 @@ urlpatterns = [
     path("add/", include('add.urls')),
     path("user_profile/", include('user_profile.urls')),
     path("chat/", include('chat.urls')),
+    path("notification/", include('notification.urls')),
 ]

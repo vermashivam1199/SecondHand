@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
     {% block navbar %}
-        <a href = "{% url 'add:add_create' %}">create</a>
+        <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="{% url 'add:add_create' %}">Create</a>
+        </li>
     {% endblock %}
         <h1>Owner List</h1>
         {% if adds %}

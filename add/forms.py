@@ -30,24 +30,24 @@ class PhotoForm(forms.ModelForm):
             self.photo_list = kwargs.pop('photo_list') # creating instance variable of number of photos stored in an add
         else:
             self.photo_list = 0
-        if kwargs.get('current_pic'):
-            self.current_pic = kwargs.pop('current_pic')# creating instance variable of number of photos sent by the user
+        if kwargs.get('current_pics'):
+            self.current_pics = kwargs.pop('current_pics')# creating instance variable of number of photos sent by the user
         else:
-            self.current_pic = None
+            self.current_pics = None
         super(PhotoForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
         pic = cleaned_data.get('picture')
-        if self.photo_list and self.current_pic:
-            if int(self.photo_list) + int(self.current_pic) > self.max_photo_upload_limit: # checking if number of photose sent by the user and number of photos in an add exceeds the maximum limit
+        if self.photo_list and self.current_pics:
+            if int(self.photo_list) + int(self.current_pics) > self.max_photo_upload_limit: # checking if number of photose sent by the user and number of photos in an add exceeds the maximum limit
                 self.add_error('picture', f'max pics is 5')
         if pic is None:
             return
         if len(pic) > self.max_upload_limit:
             self.add_error('picture', f'file must be less than {self.max_upload_limit_text}')
 
-    def save(self, f=None, commit=True):
+    def save(self, f=None, commit=True) -> Photo:
         instance = super(PhotoForm, self).save(commit=False)
         if isinstance(f, InMemoryUploadedFile) or isinstance(f, TemporaryUploadedFile):
             bytearr = f.read()
