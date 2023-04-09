@@ -2,6 +2,7 @@
 from django.http import HttpResponse
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
@@ -19,6 +20,8 @@ from django.utils.decorators import method_decorator
 from django.db.utils import IntegrityError
 import asyncio
 from asgiref.sync import sync_to_async
+from django.db.models import Q
+from itertools import chain
 
 
 
@@ -43,11 +46,38 @@ class AddListView(View):
         """
 
         adds = Add.objects.all()
+        search = request.GET.get("q")
+        search_owner = []
+        q = False
+        final_list = list(adds)
+        if search:
+            search = search.replace("+"," ")
+            q = search
+            adds = Add.objects.filter(name__contains=search)
+            search_owner = User.objects.filter(Q(first_name__contains=search) | Q(last_name__contains=search) | Q(username__contains=search))
+            final_list = list(chain(search_owner, adds))
+            pint(final_list)    
         saved = list()
         if request.user.is_authenticated:
             sav = request.user.user_add_saved.values('id') # returns list of Saved Adds in form of dict objects
             saved = [s['id'] for s in sav] # creating a list of Saved IDs that user has Saved
-        context = {'adds':adds, 'saved':saved}
+        paginator = Paginator(final_list, 5)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        total_pages = [i + 1 for i in range(paginator.num_pages)]
+        if page_obj.has_next():
+            next_page = page_obj.next_page_number()
+        else:
+            next_page = False
+        if page_obj.has_previous():
+            previous_page = page_obj.previous_page_number()
+        else:
+            previous_page = False
+        context = {
+            'saved':saved, "final_list": page_obj, "total_pages": total_pages, 
+            "current_page": page_obj.number, "next_page": next_page, "previous_page": previous_page,
+            "search": q
+        }
         return render(request,'add/list.html',context)
 
 
@@ -254,14 +284,15 @@ def stream_cover_photo(request, pk):
     cov = CoverPhoto.objects.filter(add=add)
     add_pics = add.add_photo.all()
     if cov: # chaecking if there is any new cover photo for the current add
-        res = cov[0] # deleting new cover photo
-    for i in add_pics:# checking if there is any existing cover photo for the current add
-        if i.cover:
-            res = i
-    if res.content_type:
-        response['Content-Type'] = res.content_type
-        response['Content-Length'] = len(res.picture)
-        response.write(res.picture)
+        response['Content-Type'] = cov[0].content_type
+        response['Content-Length'] = len(cov[0].picture)
+        response.write(cov[0].picture)
+    else:
+        for i in add_pics:# checking if there is any existing cover photo for the current add
+            if i.cover:
+                response['Content-Type'] = i.content_type
+                response['Content-Length'] = len(i.picture)
+                response.write(i.picture)
     return response
 
 
@@ -505,7 +536,7 @@ class PhotoAddView(LoginRequiredMixin, View):
         for file in files:
             pic = Photo.objects.filter(add=a.id) # Gets current Photo objects associated with current Add
             photo_l = str(len(pic)) # get total number of photos of current add saved in database
-            fm = PhotoForm(request.POST, request.FILES or None, photo_list=photo_l, current_pic=file_l) # Calling PhotoForm constructer with additional arguments
+            fm = PhotoForm(request.POST, request.FILES or None, photo_list=photo_l, current_pics=file_l) # Calling PhotoForm constructer with additional arguments
             if fm.is_valid():
                 row = fm.save(file, commit=False)
                 row.add = a 

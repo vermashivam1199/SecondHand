@@ -57,11 +57,11 @@ class PhotoForm(forms.ModelForm):
             instance.save()
         return instance
 
-    def max_photo_length(self, id):
-        add = get_object_or_404(Add, pk=id)
-        photo_list = Photo.objects.filter(add=id)
-        if len(photo_list)+1 > self.max_photo_upload_limit:
-            raise forms.ValidationError({'picture':[f'max photo limit reached, you can only upload {self.max_photo_upload_limit} photos']})
+    # def max_photo_length(self, id):
+    #     add = get_object_or_404(Add, pk=id)
+    #     photo_list = Photo.objects.filter(add=id)
+    #     if len(photo_list)+1 > self.max_photo_upload_limit:
+    #         raise forms.ValidationError({'picture':[f'max photo limit reached, you can only upload {self.max_photo_upload_limit} photos']})
 
 
 class AddForm(forms.ModelForm):

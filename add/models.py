@@ -99,6 +99,7 @@ class Add(models.Model):
     saved = models.ManyToManyField(User, through='Saved', related_name='user_add_saved')
     report = models.ManyToManyField(User, through='Report', related_name='user_add_report')
     comment = models.ManyToManyField(User, through='Comment', related_name='user_add_comment')
+    add_history = models.ManyToManyField(User, through='AddHistory', related_name='user_add_history')
 
     def __str__(self) -> str:
         return self.name
@@ -127,3 +128,10 @@ class Feature(models.Model):
 
     def __str__(self) -> str:
         return self.add.name
+    
+class AddHistory(models.Model):
+    add = models.ForeignKey('Add', on_delete=models.CASCADE, related_name='add_history_thru')
+    owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_history_thru')
+
+    def __str__(self) -> str:
+        return f"{self.owner.first_name}, {self.add.name}"

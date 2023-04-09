@@ -8,15 +8,16 @@
     }
 </style>
         <h1>List</h1>
-        {% if adds %}
-            {% for add in adds %}
-            <div class="card" style="width: 18rem;">
+        
+        {% for add in final_list %}
+            {% if add.name %}
+            <div class="card" style="width: 18rem; margin-top: 2mm;">
                 <a href="{% url 'add:add_detail' add.pk %}" style="text-decoration:none; color: black;">
                     <img src="{% url 'add:stream_cover_photo' add.id %}" class="card-img-top" alt="...">
                     <div class="card-body">
                     <h5 class="card-title">{{ add.name }}</h5>
                     <p class="card-text">{{ add.description }}</p>
-                  {% if user.is_authenticated %}
+                {% if user.is_authenticated %}
                     <!-- Two hrefs with two stacked icons each - one showing and one hidden -->
                     <button class="star" href="#" onclick=
                         "favPost('{% url 'add:delete_saved' add.id %}', {{ add.id }} );return false;"
@@ -29,7 +30,7 @@
                     </button>
                     <!-- the second href -->
                     <button class="star" href="#" onclick=
-                         "favPost('{% url 'add:create_saved' add.id %}', {{ add.id }} );return false;"
+                        "favPost('{% url 'add:create_saved' add.id %}', {{ add.id }} );return false;"
                         {% if add.id in saved %} style="display: none;" {% endif %}
                         id="unfavorite_star_{{add.id}}">
                         <i class="bi bi-bookmark-star"></i>
@@ -41,11 +42,71 @@
                     {% endif %}
                 </div>
                 </a>
-              </div>
-            {% endfor %}
-        {% else %}
-            <p>there are no adds</p>
-        {% endif %}
+            </div>
+            {% elif add.first_name %}
+                <div class="card" style="width: 18rem; margin-top: 2mm;">
+                    <a href="{% url 'user_profile:owner_about' add.id %}" style="text-decoration:none; color: black;">
+                        <img src="{% url 'user_profile:show_profile_photo_chat' add.id %}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                        <h5 class="card-title">{{ add.first_name }} {{ add.last_name }}</h5>
+                        <p class="card-text"></p>
+                    </div>
+                </a>
+            </div>                        
+            {% else %}
+                <!-- <p>there are no adds</p> -->
+            {% endif %}
+        {% endfor %}
+        <nav aria-label="...">
+            <ul class="pagination">
+               
+               
+               {% if search %}
+                {% if  previous_page %}
+                    <li class="page-item">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?q={{ search }}&page={{ previous_page }}" tabindex="-1">Previous</a>
+                    </li>    
+                    {% endif %}
+                    {% for i in total_pages %}
+                    {% if i == current_page %}
+                    <li class="page-item active">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?q={{ search }}&page={{ i }}">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="http://127.0.0.1:8000/add/?q={{ search }}&page={{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if next_page %}
+                    <li class="page-item">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?q={{ search }}&page={{ next_page }}">Next</a>
+                    </li>
+                {% endif %}
+                {% else %}
+                {% if  previous_page %}
+                    <li class="page-item">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ previous_page }}" tabindex="-1">Previous</a>
+                    </li>    
+                    {% endif %}
+                    {% for i in total_pages %}
+                    {% if i == current_page %}
+                    <li class="page-item active">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ i }}">{{ i }} <span class="sr-only">(current)</span></a>
+                    </li>
+                    {% else %}
+                    <li class="page-item"><a class="page-link" href="http://127.0.0.1:8000/add/?page={{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+                    {% if next_page %}
+                    <li class="page-item">
+                        <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ next_page }}">Next</a>
+                    </li>
+                {% endif %}
+               {% endif %}
+                 
+            </ul>
+          </nav>
+        
+            
         <script>
             function favPost(url, thing_id) {
                 console.log('Requesting JSON');

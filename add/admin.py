@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import (Add, Comment, Report, ReportCategory, History, Saved, Category, OfferedPrice, Photo, Favrioute, Feature, CoverPhoto)
+from .models import (Add, Comment, Report, ReportCategory, History, Saved, Category, OfferedPrice, Photo, Favrioute, Feature, CoverPhoto, AddHistory)
 
 # Register your models here.
 @admin.register(Add)
@@ -19,3 +19,4 @@ admin.site.register(OfferedPrice)
 admin.site.register(Favrioute)
 admin.site.register(Feature)
 admin.site.register(CoverPhoto)
+admin.site.register(AddHistory)

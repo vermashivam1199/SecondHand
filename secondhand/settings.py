@@ -44,10 +44,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.admindocs",
     "django_celery_results",
+    "rest_framework",
+
+
+
     
-
-
-
     "add",
     "home",
     "crispy_forms",
@@ -167,3 +168,11 @@ task_serializer = "json"
 timezone = "Asia/Kolkata"
 
 result_backend = "django-db"
+
+
+# django rest framework
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 5
+}
