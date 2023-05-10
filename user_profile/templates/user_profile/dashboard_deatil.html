@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block navbardropdown %}
+    <li><a class="dropdown-item" href="{% url 'user_profile:profile_photo' %}">Profile Photo</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:user_update' %}">Profile Update</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:password_update' %}">Password Change</a></li>
+    <li><a class="dropdown-item" href="{% url 'user_profile:profile_photo_delete' %}">Delete Profile Photo</a></li>
+{% endblock %}
+
+{% block navbar %}
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'add:owner_list' %}">Your Ads</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'home:register' %}?next={{ request.path }}">Sign up</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'add:add_create' %}">New Ad</a>
+</li>
+{% endblock %}
+{% block content %}
+<h1>{{add.name}}</h1>
+        <div id="totalComment" style="width:100%;max-width:700px"></div>
+        <div id="totalViews" style="width:100%;max-width:700px"></div>
+        <div id="totalSaved" style="width:100%;max-width:700px"></div>
+        <div id="totalPriceOffered" style="width:100%;max-width:700px"></div>
+        
+
+
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script>
+            
+            var total_comments_dict = '{{ total_comments_dict|escapejs }}';
+            var total_views_dict = '{{ total_views_dict|escapejs }}';
+            var total_saved_dict = '{{ total_saved_dict|escapejs }}';
+            var total_offer_price_dict = '{{ total_offer_price_dict|escapejs }}';
+            var add_id = '{{ add_id|escapejs }}';
+
+            console.log(total_views_dict);
+            console.log(total_comments_dict);
+            console.log(total_offer_price_dict);
+            console.log(total_saved_dict);
+
+            total_comments_dict = JSON.parse(total_comments_dict);
+            total_views_dict = JSON.parse(total_views_dict);
+            total_saved_dict = JSON.parse(total_saved_dict);
+            total_offer_price_dict = JSON.parse(total_offer_price_dict);
+
+            
+            function graphFunk (dict_data, graph_name, y_title, tag_name) {
+                var x_array = Object.keys(dict_data);
+                var y_array = Object.values(dict_data);
+                var data = [{
+                x: x_array,
+                y: y_array,
+                mode:"lines"
+                }];
+                var layout = {
+                xaxis: {range: [x_array[0], x_array[x_array.length - 1]], title: "Date"},
+                yaxis: {range: [Math.min.apply(null, y_array) - 1, Math.max.apply(null, y_array) + 1], title: y_title},  
+                title: graph_name
+                };
+                Plotly.newPlot(tag_name, data, layout);
+            };
+
+            function dictCheck (webscoket_data, dict_data, graph_name, y_title, tag_name) {
+                x = dict_data[webscoket_data.date_data]
+                console.log(webscoket_data.date_data)
+                console.log(x)
+                if (x != undefined ) {
+                    if (webscoket_data.dele){
+                        console.log("if working")
+                        dict_data[webscoket_data.date_data] -= 1
+                        console.log(dict_data[webscoket_data.date_data])
+                        graphFunk(dict_data, graph_name, y_title, tag_name); 
+                    }
+                    else {
+                        console.log("if working")
+                        dict_data[webscoket_data.date_data] += 1
+                        console.log(dict_data[webscoket_data.date_data])
+                        graphFunk(dict_data, graph_name, y_title, tag_name); 
+                    };
+                }
+                else {
+                    console.log(webscoket_data.date_data, "date coming")
+                    dict_data[webscoket_data.date_data] = 1
+                    console.log("else working")
+                    console.log(dict_data)
+                    graphFunk(dict_data, graph_name, y_title, tag_name);
+                }
+            };
+
+
+
+            // Display using Plotly
+            graphFunk(total_comments_dict, "Total Comments", "Comments", "totalComment");
+            graphFunk(total_views_dict, "Total Views", "Views", "totalViews");
+            graphFunk(total_saved_dict, "Total Saved", "Saved", "totalSaved");
+            graphFunk(total_offer_price_dict, "Total Offered Price", "Offered Price", "totalPriceOffered");
+            
+            var dashboard_socket = new WebSocket('ws://' + window.location.host + '/ws/dashboard/'+ final_path + "/")
+            dashboard_socket.onopen = function(){
+                            console.log('websocket dashboard connection open');
+                        };
+
+                dashboard_socket.onmessage = function(event){
+                console.log("on msg working")
+                var text_data = JSON.parse(event.data);
+            
+            if (text_data.add_id == add_id) {
+                if(text_data.table_name == "Comment"){
+                console.log("Comment working")
+                dictCheck(text_data, total_comments_dict, "Total Comments", "Comments", "totalComment")
+            }
+            else if(text_data.table_name == "AddHistory"){
+                console.log("AddHistory working")
+                dictCheck(text_data, total_views_dict, "Total Views", "Views", "totalViews")
+                }
+                else if(text_data.table_name == "Saved"){
+                    console.log("Saved working")
+                    dictCheck(text_data, total_saved_dict, "Total Saved", "Saved", "totalSaved")
+                }
+                else if(text_data.table_name == "OfferedPrice"){
+                    console.log("OfferedPrice working")
+                    dictCheck(text_data, total_offer_price_dict, "Total Offered Price", "Offered Price", "totalPriceOffered")
+                };
+            };                
+            };
+
+            
+                </script>
+{% endblock %}

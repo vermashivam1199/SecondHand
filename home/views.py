@@ -19,6 +19,9 @@ from django.db.models import Count
 import asyncio
 from django.core.handlers.asgi import ASGIRequest
 from secondhand.tasks import test_funk
+from django.core.paginator import Paginator
+from add.views import PaginationView
+from asgiref.sync import sync_to_async
 
 
 
@@ -65,10 +68,10 @@ class RegisterView(View):
         return render(request, 'home/register.html', contx)
         
 
-class HomeView(View):
+class HomeView(View, PaginationView):
     """A view for displaying homepage."""
 
-    def get(self, request):
+    async def get(self, request):
         """
         Displays homepage with recommendation
 
@@ -77,15 +80,21 @@ class HomeView(View):
             count_list: An instance of model class Category
         :return: HttpResponse
         """
-        test_funk.delay()
+
         if request.user.is_authenticated:
-            o = OfferedPrice.objects.filter(owner=request.user)
-            for i in o:
-                pint(i.add.owner.username)
-        if request.user.is_authenticated:
-            count_list = Category.recemondation.user_recemondations() #custom manager method
+            count_list = await sync_to_async(Category.recemondation.user_recemondations)(self.request.user.id) #custom manager method
         else:
-            count_list = Category.recemondation.anonomous_user_recemondations() #custom manager method
-        contx = {'count_list':count_list}
+            count_list = await sync_to_async(Category.recemondation.anonomous_user_recemondations)() #custom manager method
+        count_list = list(count_list)
+        paginator = Paginator(count_list, 2)
+        page_number = request.GET.get("page")
+        pint(page_number, "home page")
+        page_obj = paginator.get_page(page_number)
+        total_pages = await self.helper_max_page(page_obj.number, paginator.num_pages)
+        next_page, previous_page = await self.helper_next_previous_page(page_obj)
+        contx = {
+            "final_list": page_obj, "total_pages": total_pages, 
+            "current_page": page_obj.number, "next_page": next_page, "previous_page": previous_page
+        }
         return render(request, 'home/home.html', contx)
     

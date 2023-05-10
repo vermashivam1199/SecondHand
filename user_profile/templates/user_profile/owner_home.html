@@ -23,7 +23,11 @@
         <h3>{{ owner.username }}</h3>
         <h3>{{ owner.first_name }}</h3>
         <h3>{{ owner.email }}</h3>
-        <h2>Categories</h1>
+        <div id="totalComment" style="width:100%;max-width:700px"></div>
+        <div id="totalViews" style="width:100%;max-width:700px"></div>
+        <div id="totalSaved" style="width:100%;max-width:700px"></div>
+        <div id="totalPriceOffered" style="width:100%;max-width:700px"></div>
+        <h2>Categories</h1>        
         <ul>
                 {% for category in categories %}
                 <li>
@@ -52,17 +56,149 @@
                         {% endif %}
                 </li>
                 {% endfor %}
+                
+                {% for add in final_list %}
+                    <div class="card" style="width: 18rem; margin-top: 2mm;">
+                        <img src="{% url 'add:stream_cover_photo' add.id %}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                        <h5 class="card-title">{{ add.name  }}</h5>
+                        <p class="card-text">{{ add.description }}</p>
+                        <a href="{% url 'user_profile:dashboard_deatil' add.id %}" class="btn btn-primary">Dashboard</a>
+                        <a href="{% url 'add:owner_detail' add.id %}" class="btn btn-primary">Detail</a>
+                        </div>
+                    </div>
+                {% endfor %}
+                    
         </ul>
+        <nav aria-label="...">
+            <ul class="pagination">
+               
+            {% if  previous_page %}
+                <li class="page-item">
+                    <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ previous_page }}" tabindex="-1">Previous</a>
+                </li>    
+                {% endif %}
+                {% for i in total_pages %}
+                {% if i == current_page %}
+                <li class="page-item active">
+                    <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ i }}">{{ i }} <span class="sr-only">(current)</span></a>
+                </li>
+                {% else %}
+                <li class="page-item"><a class="page-link" href="http://127.0.0.1:8000/add/?page={{ i }}">{{ i }}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if next_page %}
+                <li class="page-item">
+                    <a class="page-link" href="http://127.0.0.1:8000/add/?page={{ next_page }}">Next</a>
+                </li>
+            {% endif %}
+                 
+            </ul>
+          </nav>
+        
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script>
-                function favPost(url, thing_id) {
-                    console.log('Requesting JSON');
-                    $.post(url, {},  function(rowz){
-                        console.log(url, 'finished');
-                        $("#unfavorite_star_"+thing_id).toggle();
-                        $("#favorite_star_"+thing_id).toggle();
-                    }).fail(function(xhr) {
-                        alert('Url failed with '+xhr.status+' '+url);
-                    });
+            
+            var total_comments_dict = '{{ total_comments_dict|escapejs }}';
+            var total_views_dict = '{{ total_views_dict|escapejs }}';
+            var total_saved_dict = '{{ total_saved_dict|escapejs }}';
+            var total_offer_price_dict = '{{ total_offer_price_dict|escapejs }}';
+
+            total_comments_dict = JSON.parse(total_comments_dict);
+            total_views_dict = JSON.parse(total_views_dict);
+            total_saved_dict = JSON.parse(total_saved_dict);
+            total_offer_price_dict = JSON.parse(total_offer_price_dict);
+
+            
+            function graphFunk (dict_data, graph_name, y_title, tag_name) {
+                var x_array = Object.keys(dict_data);
+                var y_array = Object.values(dict_data);
+                var data = [{
+                x: x_array,
+                y: y_array,
+                mode:"lines"
+                }];
+                var layout = {
+                xaxis: {range: [x_array[0], x_array[x_array.length - 1]], title: "Date"},
+                yaxis: {range: [Math.min.apply(null, y_array) - 1, Math.max.apply(null, y_array) + 1], title: y_title},  
+                title: graph_name
+                };
+                Plotly.newPlot(tag_name, data, layout);
+            }
+
+            function dictCheck (webscoket_data, dict_data, graph_name, y_title, tag_name) {
+                x = dict_data[webscoket_data.date_data]
+                console.log(webscoket_data.date_data)
+                console.log(x)
+                if (x != undefined ) {
+                    if (webscoket_data.dele){
+                        console.log("if working")
+                        dict_data[webscoket_data.date_data] -= 1
+                        console.log(dict_data[webscoket_data.date_data])
+                        graphFunk(dict_data, graph_name, y_title, tag_name); 
+                    }
+                    else {
+                        console.log("if working")
+                        dict_data[webscoket_data.date_data] += 1
+                        console.log(dict_data[webscoket_data.date_data])
+                        graphFunk(dict_data, graph_name, y_title, tag_name); 
+                    };
                 }
-                </script>
+                else {
+                    console.log(webscoket_data.date_data, "date coming")
+                    dict_data[webscoket_data.date_data] = 1
+                    console.log("else working")
+                    console.log(dict_data)
+                    graphFunk(dict_data, graph_name, y_title, tag_name);
+                }
+            };
+            
+
+            // Display using Plotly
+            graphFunk(total_comments_dict, "Total Comments", "Comments", "totalComment");
+            graphFunk(total_views_dict, "Total Views", "Views", "totalViews");
+            graphFunk(total_saved_dict, "Total Saved", "Saved", "totalSaved");
+            graphFunk(total_offer_price_dict, "Total Offered Price", "Offered Price", "totalPriceOffered");
+            
+            var dashboard_socket = new WebSocket('ws://' + window.location.host + '/ws/dashboard/')
+            dashboard_socket.onopen = function(){
+                            console.log('websocket dashboard connection open');
+                        };
+
+            dashboard_socket.onmessage = function(event){
+            console.log("on msg working")     
+            var text_data = JSON.parse(event.data);
+            console.log(text_data.table_name)
+            
+            if(text_data.table_name == "Comment"){
+                console.log("Comment working")
+                dictCheck(text_data, total_comments_dict, "Total Comments", "Comments", "totalComment")
+            }
+            else if(text_data.table_name == "AddHistory"){
+                console.log("AddHistory working")
+                dictCheck(text_data, total_views_dict, "Total Views", "Views", "totalViews")
+            }
+            else if(text_data.table_name == "Saved"){
+                console.log("Saved working")
+                dictCheck(text_data, total_saved_dict, "Total Saved", "Saved", "totalSaved")
+            }
+            else if(text_data.table_name == "OfferedPrice"){
+                console.log("OfferedPrice working")
+                dictCheck(text_data, total_offer_price_dict, "Total Offered Price", "Offered Price", "totalPriceOffered")
+            };
+                
+            };
+
+            function favPost(url, thing_id) {
+                console.log('Requesting JSON');
+                $.post(url, {},  function(rowz){
+                    console.log(url, 'finished');
+                    $("#unfavorite_star_"+thing_id).toggle();
+                    $("#favorite_star_"+thing_id).toggle();
+                }).fail(function(xhr) {
+                    alert('Url failed with '+xhr.status+' '+url);
+                });
+            }
+
+        </script>
 {% endblock %}

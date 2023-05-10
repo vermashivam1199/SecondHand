@@ -27,14 +27,39 @@ from itertools import chain
 
 # Create your views here.
 
+# Base class
+
+class PaginationView():
+
+    async def helper_max_page(self, current_page, max_page):
+        min_page_no = current_page - 3
+        max_page_no = current_page + 3
+        if min_page_no < 1:
+            min_page_no = 1
+        if max_page_no > max_page:
+            max_page_no = max_page
+        total_pages = list(range(min_page_no, max_page_no + 1))
+        return total_pages
+    
+    async def helper_next_previous_page(self, page_obj):
+        if page_obj.has_next():
+            next_page = page_obj.next_page_number()
+        else:
+            next_page = False
+        if page_obj.has_previous():
+            previous_page = page_obj.previous_page_number()
+        else:
+            previous_page = False
+        return next_page, previous_page
+
 
 
 # Add
 # <----------------------------------------------------------------------------------------------------->
-class AddListView(View):
+class AddListView(View, PaginationView):
     """This view displays list of adds"""
 
-    def get(self,request):
+    async def get(self,request):
         """
         Displays QuerySet of Add objects
 
@@ -45,40 +70,36 @@ class AddListView(View):
         :return: HttpResponse
         """
 
-        adds = Add.objects.all()
+        adds = await sync_to_async(Add.objects.all)()
         search = request.GET.get("q")
         search_owner = []
         q = False
-        final_list = list(adds)
+        final_list = await sync_to_async(list)(adds)
         if search:
             search = search.replace("+"," ")
             q = search
-            adds = Add.objects.filter(name__contains=search)
-            search_owner = User.objects.filter(Q(first_name__contains=search) | Q(last_name__contains=search) | Q(username__contains=search))
-            final_list = list(chain(search_owner, adds))
+            adds, search_owner = await asyncio.gather(
+                sync_to_async(Add.objects.filter)(name__contains=search), 
+                sync_to_async(User.objects.filter)(Q(first_name__contains=search) | Q(last_name__contains=search) | Q(username__contains=search))
+            )
+            final_list = await sync_to_async(list)(chain(search_owner, adds))
             pint(final_list)    
         saved = list()
         if request.user.is_authenticated:
-            sav = request.user.user_add_saved.values('id') # returns list of Saved Adds in form of dict objects
+            sav = await sync_to_async(list)(request.user.user_add_saved.values('id')) # returns list of Saved Adds in form of dict objects
             saved = [s['id'] for s in sav] # creating a list of Saved IDs that user has Saved
-        paginator = Paginator(final_list, 5)
+        paginator = Paginator(final_list, 2)
         page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
-        total_pages = [i + 1 for i in range(paginator.num_pages)]
-        if page_obj.has_next():
-            next_page = page_obj.next_page_number()
-        else:
-            next_page = False
-        if page_obj.has_previous():
-            previous_page = page_obj.previous_page_number()
-        else:
-            previous_page = False
+        total_pages = await self.helper_max_page(page_obj.number, paginator.num_pages)
+        next_page, previous_page = await self.helper_next_previous_page(page_obj)
         context = {
             'saved':saved, "final_list": page_obj, "total_pages": total_pages, 
             "current_page": page_obj.number, "next_page": next_page, "previous_page": previous_page,
             "search": q
         }
         return render(request,'add/list.html',context)
+
 
 
 class AddCreateView(LoginRequiredMixin, View):
@@ -425,12 +446,12 @@ class PhotoCreateView(LoginRequiredMixin, View):
 
         files = request.FILES.getlist('picture') # list of multiple photos got from PhotoForm
         files_len = len(files) # number of photos send thru request
-        res = redirect(self.sucess_url)
         if 'pk' in request.session: # this 'pk'(primary key) session allows backend to know the current instance of Add
                 session_pk = request.session['pk']
                  # Gets Add object by using Add primary key from session
         else: # if there is no 'pk'(primary key) in the session then you won't be able to save photo
             raise forms.ValidationError('no add found')
+        res = redirect(reverse('add:owner_detail', args=[pk]))
         a = get_object_or_404(Add, pk=pk)
         for file in files:
             pic = Photo.objects.filter(add=a.id) # Gets current Photo objects associated with current Add
@@ -663,7 +684,7 @@ class CommentView(LoginRequiredMixin, View):
         :param int add_id: Primary key of Add table
         :return: HttpResponseRedirect
         """
-        a = Add(pk=pk)
+        a = get_object_or_404(Add, pk=pk)
         fm = CommentForm(request.POST)
         if fm.is_valid():
             row = fm.save(commit=False)
@@ -803,6 +824,7 @@ class OfferedPriceDelete(LoginRequiredMixin, View):
         a = get_object_or_404(Add, pk=pk)
         o = get_object_or_404(OfferedPrice, owner=request.user, add=a)
         o.delete()
+        pint("offered deleted", o)
         return redirect(reverse('add:add_detail', args=[a.id]))
 # <----------------------------------------------------------------------------------------------------->
 

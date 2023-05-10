@@ -18,7 +18,7 @@
             {% endfor %}
         </ul>
         {% if user != add.owner and user.is_authenticated %}
-            <form action="{% url 'add:offered_price' add.id %}" method="POST"  onsubmit="offered_price_js(event, this)">
+            <form action="{% url 'add:offered_price' add.id %}" method="POST" id="offered_price_id" onsubmit="offered_price_js(event, this)">
                 {% csrf_token %}
                 {{ offered_price_fm|crispy }}
                 <input type="submit" value="Offer">
@@ -54,8 +54,10 @@
             function comment_change_js(e, form) {
                     e.preventDefault();
             
-                    const output = document.getElementById('output');
+                    const output = document.getElementById('newform');
+                    console.log(output)
                     const formData = new FormData(form);
+                    console.log(formData)
                 
                     fetch(form.action, {
                         method: 'POST',
@@ -65,6 +67,8 @@
                     .then(html => {
                         output.innerHTML = html.Response
                     });
+                    console.log(output.innerHTML)
+
                     var tex = document.getElementById('id_text').value;
                     var uname = document.getElementById('uname').innerHTML;
                     document.getElementById('newform').reset();

@@ -1,24 +1,29 @@
 from django.db import models
+from add.tests import pint
 
 
 
 
 class RecemondationManager(models.Manager):
 
-    def user_recemondations(self):
-        cat = self.get_queryset().raw('''WITH x AS
+    def user_recemondations(self, owner):
+        print(owner)
+        cat = self.get_queryset().raw(f'''WITH x AS
                                                 (SELECT
-                                                     *
+                                                    1 AS id
+                                                    ,f.id AS f_id 
                                                     ,c.id AS c_id
                                                     ,c.name AS c_name
                                                     ,a.id AS a_id
                                                     ,a.name AS a_name
-                                                    ,o.id AS o_id 
+                                                    ,o.id AS o_id
+                                                    ,a.description AS descp 
                                                     ,COUNT(o.price_offered) OVER(PARTITION BY a.id) as total_count
                                                 FROM add_category AS c
                                                 JOIN add_favrioute AS f ON f.category_id = c.id
                                                 JOIN add_add AS a ON a.category_id = c.id
-                                                JOIN add_offeredprice AS o ON a.id = o.add_id),
+                                                JOIN add_offeredprice AS o ON a.id = o.add_id
+                                                WHERE f.owner_id = {owner}),
                                             y AS
                                                 (SELECT
                                                     *
@@ -36,7 +41,7 @@ class RecemondationManager(models.Manager):
     def anonomous_user_recemondations(self):
         cat = self.get_queryset().raw('''WITH x AS
                                                 (SELECT
-                                                     *
+                                                    1 AS id
                                                     ,c.id AS c_id
                                                     ,c.name AS c_name
                                                     ,a.id AS a_id

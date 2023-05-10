@@ -22,10 +22,15 @@ from django.contrib.auth.forms import UserChangeForm, PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 import asyncio
 from asgiref.sync import sync_to_async
+from add.models import Comment, Saved, OfferedPrice, AddHistory, Add
+from django.db.models import Q, Count
+import json
+from django.core.paginator import Paginator
+from add.views import PaginationView
 
 # Create your views here.
 
-class UserProfileView(LoginRequiredMixin, View):
+class UserProfileView(LoginRequiredMixin, View, PaginationView):
     """A view to display user profile"""
 
     sucess_url = reverse_lazy('add:add_list')
@@ -42,20 +47,75 @@ class UserProfileView(LoginRequiredMixin, View):
         :return: HttpResponse
         """
 
-        u, categories = await asyncio.gather(self.helper_user(), self.helper_cat())
-        pint(categories)
-        if request.user.is_authenticated:
-            fav = await self.helper_fav() # returns list of catagories in form of dict objects that user has set to favrioute
-            favr = [f['id'] for f in fav] # creating a list of category IDs that user has set to favrioute 
-        contx = {'owner':u, 'categories':categories, 'favrioute':favr}
-        return render(request, 'user_profile/owner_home.html', contx)
+        u = request.user
+        categories, fav, total_comments_dict, total_views_dict, total_offer_price_dict, total_saved_dict, adds = await asyncio.gather(
+            self.helper_cat(), self.helper_fav(), self.helper_total_comments(), self.helper_total_views(), 
+            self.helper_total_offer_price(), self.helper_total_saved(), self.helper_add()
+        )
+        favr = [f['id'] for f in fav] # creating a list of category IDs that user has set to favrioute 
+        paginator = Paginator(adds, 2)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+        total_pages = await self.helper_max_page(page_obj.number, paginator.num_pages)
+        next_page, previous_page = await self.helper_next_previous_page(page_obj)
+        contx = {
+            'owner':u, 'categories':categories, 'favrioute':favr, "total_views_dict":total_views_dict, "total_saved_dict":total_saved_dict,
+            "total_comments_dict":total_comments_dict, "total_offer_price_dict":total_offer_price_dict, "final_list": page_obj, "total_pages": total_pages, 
+            "current_page": page_obj.number, "next_page": next_page, "previous_page": previous_page
+        }
+        return await sync_to_async(render)(request, 'user_profile/owner_home.html', contx)
+        
+    @sync_to_async
+    def helper_total_comments(self):
+        com = list(Comment.graph.total_value(self.request.user))
+        pint(com)
+        x_axis = [str(i["created_at__date"]) for i in com]
+        y_axis = [i["total"] for i in com]
+        pint(x_axis)
+        pint(y_axis)
+        total_comments_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_comments_dict = json.dumps(total_comments_dict)
+        return total_comments_dict
 
+    @sync_to_async
+    def helper_total_views(self):
+        com = AddHistory.graph.total_value(self.request.user)
+        x_axis = [str(i["created_at__date"]) for i in com]
+        y_axis = [i["total"] for i in com]
+        pint(x_axis)
+        pint(y_axis)
+        total_views_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_views_dict = json.dumps(total_views_dict)
+        return total_views_dict
+    
+    @sync_to_async
+    def helper_total_offer_price(self):
+        com = OfferedPrice.graph.total_value(self.request.user)
+        x_axis = [str(i["created_at__date"]) for i in com]
+        y_axis = [i["total"] for i in com]
+        pint(x_axis)
+        pint(y_axis)
+        total_offer_price_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_offer_price_dict = json.dumps(total_offer_price_dict)
+        return total_offer_price_dict
+    
+    @sync_to_async
+    def helper_total_saved(self):
+        com = Saved.graph.total_value(self.request.user)
+        x_axis = [str(i["created_at__date"]) for i in com]
+        y_axis = [i["total"] for i in com]
+        pint(x_axis)
+        pint(y_axis)
+        total_saved_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_saved_dict = json.dumps(total_saved_dict)
+        return total_saved_dict
+    
     @sync_to_async(thread_sensitive=False)
-    def helper_user(self):
+    def helper_add(self):
         """A helper method that returns User object through sync_to_async decorator"""
 
-        o = get_object_or_404(User, pk=self.request.user.id)
-        return o
+        o = Add.objects.filter(owner=self.request.user)
+        return list(o)
     
     @sync_to_async(thread_sensitive=False)
     def helper_cat(self):
@@ -312,3 +372,71 @@ def stream_profile_pic_chat(request, pk):
         response['Content-Length'] = len(pic.picture)
         response.write(pic.picture)
     return response
+
+
+class DashboardDetailView(LoginRequiredMixin, View):
+
+    async def get(self, request, pk):
+        add = await sync_to_async(get_object_or_404)(Add, pk=pk)
+        total_comments_dict, total_views_dict, total_offer_price_dict, total_saved_dict = await asyncio.gather(
+            self.helper_detail_comment(add), self.helper_detail_views(add), 
+            self.helper_detail_offered_price(add), self.helper_detail_saved(add)
+        )
+        pint(total_comments_dict, "comments dict")
+        contx = {
+            "total_views_dict":total_views_dict, "total_saved_dict":total_saved_dict,
+            "total_comments_dict":total_comments_dict, "total_offer_price_dict":total_offer_price_dict,
+            "add_id":add.id
+        }
+
+        return render(request, "user_profile/dashboard_deatil.html", contx)
+    
+    @sync_to_async
+    def helper_detail_views(self, a):
+        r = AddHistory.detail_graph.total_value_detail(a)
+        x_axis = [str(i["created_at__date"]) for i in r]
+        y_axis = [i["total"] for i in r]
+        pint("views")
+        pint(x_axis)
+        pint(y_axis)
+        total_views_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_views_dict = json.dumps(total_views_dict)
+        return total_views_dict
+    
+    @sync_to_async
+    def helper_detail_comment(self, a):
+        r = Comment.detail_graph.total_value_detail(a)
+        x_axis = [str(i["created_at__date"]) for i in r]
+        y_axis = [i["total"] for i in r]
+        pint("comments")
+        pint(x_axis)
+        pint(y_axis)
+        total_comments_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_comments_dict = json.dumps(total_comments_dict)
+        pint(total_comments_dict)
+        return total_comments_dict
+    
+    @sync_to_async
+    def helper_detail_saved(self, a):
+        r = Saved.detail_graph.total_value_detail(a)
+        x_axis = [str(i["created_at__date"]) for i in r]
+        y_axis = [i["total"] for i in r]
+        pint("saved")
+        pint(x_axis)
+        pint(y_axis)
+        total_saved_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_saved_dict = json.dumps(total_saved_dict)
+        pint(type(total_saved_dict))
+        return total_saved_dict
+    
+    @sync_to_async
+    def helper_detail_offered_price(self, a):
+        r = OfferedPrice.detail_graph.total_value_detail(a)
+        x_axis = [str(i["created_at__date"]) for i in r]
+        y_axis = [i["total"] for i in r]
+        pint("offer price")
+        pint(x_axis)
+        pint(y_axis)
+        total_offered_price_dict = {k:v for k,v in zip(x_axis, y_axis)}
+        total_offered_price_dict = json.dumps(total_offered_price_dict)
+        return total_offered_price_dict

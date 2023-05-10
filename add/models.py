@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from .managers import RecemondationManager
+from user_profile.managers import GraphManager, GraphDetailManager
 
 
 class Category(models.Model):
@@ -34,6 +35,11 @@ class OfferedPrice(models.Model):
     price_offered = models.DecimalField(max_digits=10, decimal_places=2)
     add = models.ForeignKey('Add',on_delete=models.CASCADE, related_name='add_offered_price')
     owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_offered_price') #current user that offered price
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    graph = GraphManager()
+    objects = models.Manager()
+    detail_graph = GraphDetailManager()
 
     def __str__(self) -> str:
         return str(self.price_offered)
@@ -44,6 +50,11 @@ class OfferedPrice(models.Model):
 class Saved(models.Model):
     add = models.ForeignKey('Add',on_delete=models.CASCADE, related_name='add_saved')
     owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_saved')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    graph = GraphManager()
+    objects = models.Manager()
+    detail_graph = GraphDetailManager()
 
     def __str__(self) -> str:
         return self.owner.username
@@ -81,6 +92,11 @@ class Comment(models.Model):
     text = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+    graph = GraphManager()
+    objects = models.Manager()
+    detail_graph = GraphDetailManager()
 
     def __str__(self) -> str:
         return self.owner.username
@@ -132,6 +148,11 @@ class Feature(models.Model):
 class AddHistory(models.Model):
     add = models.ForeignKey('Add', on_delete=models.CASCADE, related_name='add_history_thru')
     owner = models.ForeignKey(User,on_delete=models.CASCADE, related_name='user_history_thru')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    graph = GraphManager()
+    objects = models.Manager()
+    detail_graph = GraphDetailManager()
 
     def __str__(self) -> str:
         return f"{self.owner.first_name}, {self.add.name}"

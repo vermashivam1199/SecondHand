@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block navbar %}
+<li class="nav-item">
+    <a class="nav-link active" aria-current="page" href="{% url 'add:add_list' %}">Ads</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link active" aria-current="page" href="{% url 'home:register' %}?next={{ request.path }}">Sign up</a>
+</li>
+{% endblock %} 
+{% block content %}
+      
+    {% for add, value in add_dict.items %}
+    
+        <h1>Add</h1>
+        <p>{{add}}</p>
+        <h2>Comments</h2>
+        {% for comment in value.comments %}
+            <p>{{comment.text}} by {{comment.owner}}</p>
+        {% endfor %}
+        <h2>Offered Price</h2>
+        {% for offered in value.offered_price %}
+            <p>{{offered.price_offered}} by {{offered.owner}}</p>
+        {% endfor %}
+        <h2>Saved</h2>
+        {% for save in value.saved %}
+            <p>by {{save.owner}}</p>
+        {% endfor %}
+        <h2>Views</h2>
+        {% for history in value.add_history %}
+            <p>viewed by {{history.owner}}</p>
+        {% endfor %}
+
+
+       
+        
+    {% endfor %}
+              
+{% endblock %}

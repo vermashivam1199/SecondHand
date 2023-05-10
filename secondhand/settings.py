@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "user_profile",
     "chat",
     "notification",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -100,13 +101,25 @@ ASGI_APPLICATION = "secondhand.asgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+        "ENGINE": "mssql",
+        "NAME": "secondhand",
+        "USER": "sa",
+        "PASSWORD": "Innotarun1999",
+        "HOST": "DESKTOP-UGNJCBF\SHIVAM",
+        "PORT": "",
+        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server", 
+        },
+    },
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators

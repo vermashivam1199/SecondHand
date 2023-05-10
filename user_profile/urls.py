@@ -2,7 +2,7 @@ from django.views.generic import TemplateView
 from django.urls import path
 from.views import (
     UserProfileView, OwnerProfilePhotoUpdateView, stream_profile_pic, OwnerProfilePhotoDeleteView, OwnerAboutView, CreateFavriouteView,
-    DeleteFavriouteView, UserUpdateView, PasswordUpdateView, stream_profile_pic_chat
+    DeleteFavriouteView, UserUpdateView, PasswordUpdateView, stream_profile_pic_chat, DashboardDetailView
 )
 
 
@@ -18,4 +18,5 @@ urlpatterns = [
     path('user_update/', UserUpdateView.as_view(), name='user_update'),
     path('password_update/', PasswordUpdateView.as_view(), name='password_update'),
     path('show_profile_photo_chat/<int:pk>', stream_profile_pic_chat, name='show_profile_photo_chat'),
+    path('dashboard_deatil/<int:pk>', DashboardDetailView.as_view(), name='dashboard_deatil'),
 ]

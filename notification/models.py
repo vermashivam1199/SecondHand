@@ -10,6 +10,7 @@ class NotificationModel(models.Model):
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_reciver_notification")
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_sender_notification")
     seen  = models.BooleanField(default=False)
+    table_name = models.CharField(max_length=255)
 
     def __str__(self) -> str:
         return str(self.receiver)
@@ -17,6 +18,7 @@ class NotificationModel(models.Model):
 class ChannelName(models.Model):
     channel_name = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="channel_name")
-
+    consumer_name = models.CharField(max_length=255)
+    
     def __str__(self) -> str:
         return str(self.owner)

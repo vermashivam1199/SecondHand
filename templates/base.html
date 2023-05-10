@@ -107,13 +107,13 @@ integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CX
 <script>
   var notification_socket = new WebSocket('ws://' + window.location.host + '/ws/notification/')
   notification_socket.onopen = function(){
-                console.log('websocket connection open');
+                console.log('websocket notification connection open');
             };
   notification_socket.onmessage = function(event){
     var msg = event.data;
     console.log("on msg working")
     var current_path = window.location.pathname
-    console.log(current_path)
+    console.log(current_path, typeof current_path)
     if (!current_path.includes("/notification_list")){
       var full_bell = document.getElementById("full-bell")
       var empty_bell = document.getElementById("empty-bell")
@@ -122,6 +122,7 @@ integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CX
     }
     console.log(msg);
   };
+  
 </script>
 </body>
 </html>
