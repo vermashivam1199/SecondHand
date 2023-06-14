@@ -113,7 +113,7 @@ DATABASES = {
         "ENGINE": "mssql",
         "NAME": "secondhand",
         "USER": "sa",
-        "PASSWORD": "Innotarun1999",
+        "PASSWORD": "Password",
         "HOST": "DESKTOP-UGNJCBF\SHIVAM",
         "PORT": "",
         "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server", 
